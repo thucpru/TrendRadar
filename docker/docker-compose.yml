@@ -54,6 +54,9 @@ services:
       - CRON_SCHEDULE=${CRON_SCHEDULE:-*/30 * * * *}
       - RUN_MODE=${RUN_MODE:-cron}
       - IMMEDIATE_RUN=${IMMEDIATE_RUN:-true}
+    networks:
+      - default
+      - dokploy-network
 
   trendradar-mcp:
     image: wantcat/trendradar-mcp:latest
@@ -70,3 +73,11 @@ services:
     environment:
       - TZ=Asia/Shanghai
       - MCP_PORT=${MCP_PORT:-3333}
+    networks:
+      - default
+      - dokploy-network
+
+networks:
+  default:
+  dokploy-network:
+    external: true
