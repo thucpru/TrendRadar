@@ -25,6 +25,7 @@ from ..utils.validators import (
     validate_threshold
 )
 from ..utils.errors import MCPError, InvalidParameterError, DataNotFoundError
+from ..utils.i18n import get_translator
 
 
 # 权重配置 mtime 缓存（避免重复读取同一配置文件）
@@ -107,6 +108,7 @@ class AnalyticsTools:
             project_root: 项目根目录
         """
         self.data_service = DataService(project_root)
+        self._t, self._locale = get_translator(project_root)
 
     def analyze_data_insights_unified(
         self,
@@ -141,8 +143,8 @@ class AnalyticsTools:
             # 参数验证
             if insight_type not in ["platform_compare", "platform_activity", "keyword_cooccur"]:
                 raise InvalidParameterError(
-                    f"无效的洞察类型: {insight_type}",
-                    suggestion="支持的类型: platform_compare, platform_activity, keyword_cooccur"
+                    self._t("mcp.analytics.error.invalid_insight_type", insight_type=insight_type),
+                    suggestion=self._t("mcp.analytics.error.supported_insight_types")
                 )
 
             # 根据洞察类型调用相应方法
@@ -220,8 +222,8 @@ class AnalyticsTools:
 
             if analysis_type not in ["trend", "lifecycle", "viral", "predict"]:
                 raise InvalidParameterError(
-                    f"无效的分析类型: {analysis_type}",
-                    suggestion="支持的类型: trend, lifecycle, viral, predict"
+                    self._t("mcp.analytics.error.invalid_analysis_type", analysis_type=analysis_type),
+                    suggestion=self._t("mcp.analytics.error.supported_analysis_types")
                 )
 
             # 根据分析类型调用相应方法
@@ -314,8 +316,8 @@ class AnalyticsTools:
             if granularity != "day":
                 from ..utils.errors import InvalidParameterError
                 raise InvalidParameterError(
-                    f"不支持的粒度参数: {granularity}",
-                    suggestion="当前仅支持 'day' 粒度，因为底层数据按天聚合"
+                    self._t("mcp.analytics.error.unsupported_granularity", granularity=granularity),
+                    suggestion=self._t("mcp.analytics.error.unsupported_granularity_suggestion")
                 )
 
             # 处理日期范围（不指定时默认最近7天）
@@ -390,7 +392,7 @@ class AnalyticsTools:
             return {
                 "success": True,
                 "summary": {
-                    "description": f"话题「{topic}」的热度趋势分析",
+                    "description": self._t("mcp.analytics.summary.topic_trend", topic=topic),
                     "topic": topic,
                     "date_range": {
                         "start": start_date.strftime("%Y-%m-%d"),
@@ -403,7 +405,7 @@ class AnalyticsTools:
                     "peak_count": max_count,
                     "peak_time": peak_time,
                     "change_rate": round(change_rate, 2),
-                    "trend_direction": "上升" if change_rate > 10 else "下降" if change_rate < -10 else "稳定"
+                    "trend_direction": self._t("mcp.analytics.trend.up") if change_rate > 10 else self._t("mcp.analytics.trend.down") if change_rate < -10 else self._t("mcp.analytics.trend.stable")
                 },
                 "data": trend_data
             }
@@ -632,7 +634,7 @@ class AnalyticsTools:
             return {
                 "success": True,
                 "summary": {
-                    "description": "关键词共现分析结果",
+                    "description": self._t("mcp.analytics.summary.keyword_cooccurrence"),
                     "total": len(result_pairs),
                     "min_frequency": min_frequency,
                     "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -759,10 +761,10 @@ class AnalyticsTools:
                 current_date += timedelta(days=1)
 
             if not all_news_items:
-                time_desc = "今天" if start_date == end_date else f"{start_date.strftime('%Y-%m-%d')} 至 {end_date.strftime('%Y-%m-%d')}"
+                time_desc = self._t("mcp.search.time.today") if start_date == end_date else self._t("mcp.search.time.range", start=start_date.strftime('%Y-%m-%d'), end=end_date.strftime('%Y-%m-%d'))
                 raise DataNotFoundError(
-                    f"未找到相关新闻（{time_desc}）",
-                    suggestion="请尝试其他话题、日期范围或平台"
+                    self._t("mcp.analytics.error.no_related_news", time_desc=time_desc),
+                    suggestion=self._t("mcp.analytics.error.no_related_news_suggestion")
                 )
 
             # 去重（同一标题只保留一次）
@@ -799,13 +801,13 @@ class AnalyticsTools:
             if start_date == end_date:
                 time_range_desc = start_date.strftime("%Y-%m-%d")
             else:
-                time_range_desc = f"{start_date.strftime('%Y-%m-%d')} 至 {end_date.strftime('%Y-%m-%d')}"
+                time_range_desc = self._t("mcp.search.time.range", start=start_date.strftime('%Y-%m-%d'), end=end_date.strftime('%Y-%m-%d'))
 
             result = {
                 "success": True,
                 "method": "ai_prompt_generation",
                 "summary": {
-                    "description": "情感分析数据和AI提示词",
+                    "description": self._t("mcp.analytics.summary.sentiment_prompt"),
                     "total_found": len(deduplicated_news),
                     "returned": len(selected_news),
                     "requested_limit": limit,
@@ -817,14 +819,14 @@ class AnalyticsTools:
                 },
                 "ai_prompt": ai_prompt,
                 "data": selected_news,
-                "usage_note": "请将 ai_prompt 字段的内容发送给 AI 进行情感分析"
+                "usage_note": self._t("mcp.analytics.note.send_ai_prompt")
             }
 
             # 如果返回数量少于请求数量，增加提示
             if len(selected_news) < limit and len(deduplicated_news) >= limit:
-                result["note"] = "返回数量少于请求数量是因为去重逻辑（同一标题在不同平台只保留一次）"
+                result["note"] = self._t("mcp.analytics.note.deduplicated_less_than_limit")
             elif len(deduplicated_news) < limit:
-                result["note"] = f"在指定时间范围内仅找到 {len(deduplicated_news)} 条匹配的新闻"
+                result["note"] = self._t("mcp.analytics.note.only_found_matches", count=len(deduplicated_news))
 
             return result
 
@@ -1013,14 +1015,14 @@ class AnalyticsTools:
 
             if not result_items:
                 raise DataNotFoundError(
-                    f"未找到相似度超过 {threshold} 的新闻",
-                    suggestion="请降低相似度阈值或尝试其他标题"
+                    self._t("mcp.analytics.error.no_similar_news", threshold=threshold),
+                    suggestion=self._t("mcp.analytics.error.no_similar_news_suggestion")
                 )
 
             result = {
                 "success": True,
                 "summary": {
-                    "description": "相似新闻搜索结果",
+                    "description": self._t("mcp.analytics.summary.similar_news"),
                     "total_found": len(similar_items),
                     "returned": len(result_items),
                     "requested_limit": limit,
@@ -1031,7 +1033,7 @@ class AnalyticsTools:
             }
 
             if len(similar_items) < limit:
-                result["note"] = f"相似度阈值 {threshold} 下仅找到 {len(similar_items)} 条相似新闻"
+                result["note"] = self._t("mcp.analytics.note.similar_limited", threshold=threshold, count=len(similar_items))
 
             return result
 
@@ -1090,8 +1092,8 @@ class AnalyticsTools:
 
             if entity_type and entity_type not in ["person", "location", "organization"]:
                 raise InvalidParameterError(
-                    f"无效的实体类型: {entity_type}",
-                    suggestion="支持的类型: person, location, organization"
+                    self._t("mcp.analytics.error.invalid_entity_type", entity_type=entity_type),
+                    suggestion=self._t("mcp.analytics.error.supported_entity_types")
                 )
 
             # 读取数据
@@ -1128,8 +1130,8 @@ class AnalyticsTools:
 
             if not related_news:
                 raise DataNotFoundError(
-                    f"未找到包含实体 '{entity}' 的新闻",
-                    suggestion="请尝试其他实体名称"
+                    self._t("mcp.analytics.error.entity_not_found", entity=entity),
+                    suggestion=self._t("mcp.analytics.error.entity_not_found_suggestion")
                 )
 
             # 移除实体本身
@@ -1152,7 +1154,7 @@ class AnalyticsTools:
             return {
                 "success": True,
                 "summary": {
-                    "description": f"实体「{entity}」相关新闻",
+                    "description": self._t("mcp.analytics.summary.entity_related_news", entity=entity),
                     "entity": entity,
                     "entity_type": entity_type or "auto",
                     "total_found": len(related_news),
@@ -1212,8 +1214,8 @@ class AnalyticsTools:
             # 参数验证
             if report_type not in ["daily", "weekly"]:
                 raise InvalidParameterError(
-                    f"无效的报告类型: {report_type}",
-                    suggestion="支持的类型: daily, weekly"
+                    self._t("mcp.analytics.error.invalid_report_type", report_type=report_type),
+                    suggestion=self._t("mcp.analytics.error.supported_report_types")
                 )
 
             # 确定日期范围
@@ -1260,50 +1262,50 @@ class AnalyticsTools:
                 current_date += timedelta(days=1)
 
             # 生成报告
-            report_title = f"{'每日' if report_type == 'daily' else '每周'}新闻热点摘要"
-            date_str = f"{start_date.strftime('%Y-%m-%d')}" if report_type == "daily" else f"{start_date.strftime('%Y-%m-%d')} 至 {end_date.strftime('%Y-%m-%d')}"
+            report_title = self._t("mcp.analytics.report.title.daily") if report_type == "daily" else self._t("mcp.analytics.report.title.weekly")
+            date_str = f"{start_date.strftime('%Y-%m-%d')}" if report_type == "daily" else self._t("mcp.search.time.range", start=start_date.strftime('%Y-%m-%d'), end=end_date.strftime('%Y-%m-%d'))
 
             # 构建Markdown报告
             markdown = f"""# {report_title}
 
-**报告日期**: {date_str}
-**生成时间**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+**{self._t("mcp.analytics.report.label.report_date")}**: {date_str}
+**{self._t("mcp.analytics.report.label.generated_at")}**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 
 ---
 
-## 📊 数据概览
+## 📊 {self._t("mcp.analytics.report.section.overview")}
 
-- **总新闻数**: {len(all_titles_list)}
-- **覆盖平台**: {len(all_platforms_news)}
-- **热门关键词数**: {len(all_keywords)}
+- **{self._t("mcp.analytics.report.label.total_news")}**: {len(all_titles_list)}
+- **{self._t("mcp.analytics.report.label.platforms_covered")}**: {len(all_platforms_news)}
+- **{self._t("mcp.analytics.report.label.hot_keywords")}**: {len(all_keywords)}
 
-## 🔥 TOP 10 热门话题
+## 🔥 {self._t("mcp.analytics.report.section.top_topics")}
 
 """
 
             # 添加TOP 10关键词
             for i, (keyword, count) in enumerate(all_keywords.most_common(10), 1):
-                markdown += f"{i}. **{keyword}** - 出现 {count} 次\n"
+                markdown += f"{i}. **{keyword}** - {self._t('mcp.analytics.report.label.appeared_n_times', count=count)}\n"
 
             # 平台分析
-            markdown += "\n## 📱 平台活跃度\n\n"
+            markdown += f"\n## 📱 {self._t('mcp.analytics.report.section.platform_activity')}\n\n"
             sorted_platforms = sorted(all_platforms_news.items(), key=lambda x: x[1], reverse=True)
 
             for platform, count in sorted_platforms:
-                markdown += f"- **{platform}**: {count} 条新闻\n"
+                markdown += f"- **{platform}**: {self._t('mcp.analytics.report.label.news_count', count=count)}\n"
 
             # 趋势变化（如果是周报）
             if report_type == "weekly":
-                markdown += "\n## 📈 趋势分析\n\n"
-                markdown += "本周热度持续的话题（样本数据）：\n\n"
+                markdown += f"\n## 📈 {self._t('mcp.analytics.report.section.trend_analysis')}\n\n"
+                markdown += f"{self._t('mcp.analytics.report.label.weekly_continued_topics')}\n\n"
 
                 # 简单的趋势分析
                 top_keywords = [kw for kw, _ in all_keywords.most_common(5)]
                 for keyword in top_keywords:
-                    markdown += f"- **{keyword}**: 持续热门\n"
+                    markdown += f"- **{keyword}**: {self._t('mcp.analytics.report.label.continued_hot')}\n"
 
             # 添加样本新闻（按权重选择，确保确定性）
-            markdown += "\n## 📰 精选新闻样本\n\n"
+            markdown += f"\n## 📰 {self._t('mcp.analytics.report.section.selected_samples')}\n\n"
 
             # 确定性选取：按标题的权重排序，取前5条
             # 这样相同输入总是返回相同结果
@@ -1328,7 +1330,7 @@ class AnalyticsTools:
                 for news in sample_news:
                     markdown += f"- [{news['platform']}] {news['title']}\n"
 
-            markdown += "\n---\n\n*本报告由 TrendRadar MCP 自动生成*\n"
+            markdown += f"\n---\n\n*{self._t('mcp.analytics.report.footer.generated_by')}*\n"
 
             return {
                 "success": True,
@@ -1570,8 +1572,8 @@ class AnalyticsTools:
             if not any(counts):
                 time_desc = f"{start_date.strftime('%Y-%m-%d')} 至 {end_date.strftime('%Y-%m-%d')}"
                 raise DataNotFoundError(
-                    f"在 {time_desc} 内未找到话题 '{topic}'",
-                    suggestion="请尝试其他话题或扩大时间范围"
+                    self._t("mcp.analytics.error.topic_not_found_in_range", time_desc=time_desc, topic=topic),
+                    suggestion=self._t("mcp.analytics.error.topic_not_found_in_range_suggestion")
                 )
 
             # 找到首次出现和最后出现
@@ -1592,23 +1594,23 @@ class AnalyticsTools:
             early_counts = counts[:3]    # 前3天
 
             if sum(recent_counts) > sum(early_counts):
-                lifecycle_stage = "上升期"
+                lifecycle_stage = self._t("mcp.analytics.lifecycle.rising")
             elif sum(recent_counts) < sum(early_counts) * 0.5:
-                lifecycle_stage = "衰退期"
+                lifecycle_stage = self._t("mcp.analytics.lifecycle.declining")
             elif max_count in recent_counts:
-                lifecycle_stage = "爆发期"
+                lifecycle_stage = self._t("mcp.analytics.lifecycle.surging")
             else:
-                lifecycle_stage = "稳定期"
+                lifecycle_stage = self._t("mcp.analytics.lifecycle.stable")
 
             # 分类：昙花一现 vs 持续热点
             active_days = sum(1 for c in counts if c > 0)
 
             if active_days <= 2 and max_count > avg_count * 2:
-                topic_type = "昙花一现"
+                topic_type = self._t("mcp.analytics.topic_type.flash_in_pan")
             elif active_days >= total_days * 0.6:
-                topic_type = "持续热点"
+                topic_type = self._t("mcp.analytics.topic_type.sustained_hot")
             else:
-                topic_type = "周期性热点"
+                topic_type = self._t("mcp.analytics.topic_type.periodic_hot")
 
             return {
                 "success": True,
@@ -1734,14 +1736,14 @@ class AnalyticsTools:
                         "keyword": keyword,
                         "current_count": current_count,
                         "previous_count": previous_count,
-                        "growth_rate": round(growth_rate, 2) if growth_rate != float('inf') else "新话题",
+                        "growth_rate": round(growth_rate, 2) if growth_rate != float('inf') else self._t("mcp.analytics.label.new_topic"),
                         "sample_titles": current_keyword_titles[keyword][:3],
-                        "alert_level": "高" if growth_rate > threshold * 2 else "中"
+                        "alert_level": self._t("mcp.analytics.alert.high") if growth_rate > threshold * 2 else self._t("mcp.analytics.alert.medium")
                     })
 
             # 按增长率排序
             viral_topics.sort(
-                key=lambda x: x["current_count"] if x["growth_rate"] == "新话题" else x["growth_rate"],
+                key=lambda x: x["current_count"] if x["growth_rate"] == self._t("mcp.analytics.label.new_topic") else x["growth_rate"],
                 reverse=True
             )
 
@@ -1749,19 +1751,19 @@ class AnalyticsTools:
                 return {
                     "success": True,
                     "summary": {
-                        "description": "异常热度检测结果",
+                        "description": self._t("mcp.analytics.summary.viral_detection"),
                         "total": 0,
                         "threshold": threshold,
                         "time_window": time_window
                     },
                     "data": [],
-                    "message": f"未检测到热度增长超过 {threshold} 倍的话题"
+                    "message": self._t("mcp.analytics.message.no_viral_topics", threshold=threshold)
                 }
 
             return {
                 "success": True,
                 "summary": {
-                    "description": "异常热度检测结果",
+                    "description": self._t("mcp.analytics.summary.viral_detection"),
                     "total": len(viral_topics),
                     "threshold": threshold,
                     "time_window": time_window,
@@ -1869,8 +1871,8 @@ class AnalyticsTools:
 
             except DataNotFoundError:
                 raise DataNotFoundError(
-                    "未找到今天的数据",
-                    suggestion="请等待爬虫任务完成"
+                    self._t("mcp.analytics.error.no_today_data"),
+                    suggestion=self._t("mcp.analytics.error.no_today_data_suggestion")
                 )
 
             # 预测潜力话题
@@ -1913,7 +1915,7 @@ class AnalyticsTools:
                             "growth_rate": round(growth_rate * 100, 2),
                             "confidence": round(confidence, 2),
                             "trend_data": trend_data,
-                            "prediction": "上升趋势，可能成为热点",
+                            "prediction": self._t("mcp.analytics.prediction.rising_hot"),
                             "sample_titles": keyword_titles.get(keyword, [])[:3]
                         })
 
@@ -1926,7 +1928,7 @@ class AnalyticsTools:
             return {
                 "success": True,
                 "summary": {
-                    "description": "热点话题预测结果",
+                    "description": self._t("mcp.analytics.summary.predicted_topics"),
                     "total": len(predicted_topics),
                     "returned": min(20, len(predicted_topics)),
                     "lookahead_hours": lookahead_hours,
@@ -1934,7 +1936,7 @@ class AnalyticsTools:
                     "prediction_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 },
                 "data": predicted_topics[:20],  # 返回TOP 20
-                "note": "预测基于历史趋势，实际结果可能有偏差"
+                "note": self._t("mcp.analytics.note.prediction_disclaimer")
             }
 
         except MCPError as e:
@@ -2115,12 +2117,12 @@ class AnalyticsTools:
                 return {
                     "success": True,
                     "summary": {
-                        "description": "跨平台新闻聚合结果",
+                        "description": self._t("mcp.analytics.summary.cross_platform_aggregation"),
                         "total": 0,
                         "returned": 0
                     },
                     "data": [],
-                    "message": "未找到新闻数据"
+                    "message": self._t("mcp.analytics.message.no_news_data")
                 }
 
             # 执行聚合
@@ -2147,7 +2149,7 @@ class AnalyticsTools:
             return {
                 "success": True,
                 "summary": {
-                    "description": "跨平台新闻聚合结果",
+                    "description": self._t("mcp.analytics.summary.cross_platform_aggregation"),
                     "original_count": total_original,
                     "aggregated_count": total_aggregated,
                     "returned": len(results),
@@ -2348,8 +2350,8 @@ class AnalyticsTools:
 
             if compare_type not in ["overview", "topic_shift", "platform_activity"]:
                 raise InvalidParameterError(
-                    f"不支持的对比类型: {compare_type}",
-                    suggestion="支持的类型: overview, topic_shift, platform_activity"
+                    self._t("mcp.analytics.error.unsupported_compare_type", compare_type=compare_type),
+                    suggestion=self._t("mcp.analytics.error.supported_compare_types")
                 )
 
             # 解析时间段
@@ -2358,8 +2360,8 @@ class AnalyticsTools:
 
             if not date_range1 or not date_range2:
                 raise InvalidParameterError(
-                    "无效的时间段格式",
-                    suggestion="使用 {'start': 'YYYY-MM-DD', 'end': 'YYYY-MM-DD'} 或预设值如 'last_week'"
+                    self._t("mcp.analytics.error.invalid_period_format"),
+                    suggestion=self._t("mcp.analytics.error.invalid_period_format_suggestion")
                 )
 
             # 收集两个时期的数据
@@ -2377,7 +2379,7 @@ class AnalyticsTools:
             result = {
                 "success": True,
                 "summary": {
-                    "description": f"时期对比分析（{compare_type}）",
+                    "description": self._t("mcp.analytics.summary.period_compare", compare_type=compare_type),
                     "compare_type": compare_type,
                     "periods": {
                         "period1": {

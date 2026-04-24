@@ -10,6 +10,7 @@ from typing import Dict, List, Optional
 from ..services.data_service import DataService
 from ..utils.validators import validate_platforms
 from ..utils.errors import MCPError, CrawlTaskError
+from ..utils.i18n import get_translator
 
 
 class SystemManagementTools:
@@ -23,6 +24,7 @@ class SystemManagementTools:
             project_root: 项目根目录
         """
         self.data_service = DataService(project_root)
+        self._t, self._locale = get_translator(project_root)
         if project_root:
             self.project_root = Path(project_root)
         else:
@@ -49,7 +51,7 @@ class SystemManagementTools:
             return {
                 "success": True,
                 "summary": {
-                    "description": "系统运行状态和健康检查信息"
+                    "description": self._t("mcp.summary.system_status")
                 },
                 "data": status
             }
@@ -75,7 +77,7 @@ class SystemManagementTools:
         config_path = self.project_root / "config" / "config.yaml"
         if not config_path.exists():
             raise CrawlTaskError(
-                "配置文件不存在",
+                self._t("mcp.error.config_file_not_found"),
                 suggestion=f"请确保配置文件存在: {config_path}"
             )
 
@@ -85,13 +87,13 @@ class SystemManagementTools:
         platforms_config = config_data.get("platforms", {})
         if not platforms_config.get("enabled", True):
             raise CrawlTaskError(
-                "热榜平台已禁用",
+                self._t("mcp.error.platforms_disabled"),
                 suggestion="请检查 config/config.yaml 中的 platforms.enabled 配置"
             )
         all_platforms = platforms_config.get("sources", [])
         if not all_platforms:
             raise CrawlTaskError(
-                "配置文件中没有平台配置",
+                self._t("mcp.error.platforms_missing"),
                 suggestion="请检查 config/config.yaml 中的 platforms.sources 配置"
             )
 
@@ -103,8 +105,8 @@ class SystemManagementTools:
             target_platforms = [p for p in all_platforms if p["id"] in platforms]
             if not target_platforms:
                 raise CrawlTaskError(
-                    f"指定的平台不存在: {platforms}",
-                    suggestion=f"可用平台: {[p['id'] for p in all_platforms]}"
+                    self._t("mcp.error.specified_platforms_missing", platforms=platforms),
+                    suggestion=self._t("mcp.error.available_platforms", platforms=[p['id'] for p in all_platforms])
                 )
         else:
             target_platforms = all_platforms
@@ -140,7 +142,7 @@ class SystemManagementTools:
                     saved_files["html"] = html_path
 
         except Exception as e:
-            print(f"[System] 数据保存失败: {e}")
+            print(self._t("mcp.log.save_failed", error=e))
             save_success = False
             save_error_msg = str(e)
 
@@ -169,7 +171,7 @@ class SystemManagementTools:
         result = {
             "success": True,
             "summary": {
-                "description": "爬取任务执行结果",
+                "description": self._t("mcp.summary.crawl_result"),
                 "task_id": f"crawl_{int(time.time())}",
                 "status": "completed",
                 "crawl_time": current_time.strftime("%Y-%m-%d %H:%M:%S"),
@@ -184,16 +186,16 @@ class SystemManagementTools:
         if save_success:
             if save_to_local:
                 result["saved_files"] = saved_files
-                result["note"] = "数据已保存到 SQLite 数据库及 output 文件夹"
+                result["note"] = self._t("mcp.note.saved_db_and_output")
             else:
-                result["note"] = "数据已保存到 SQLite 数据库 (仅内存中返回结果，未生成TXT快照)"
+                result["note"] = self._t("mcp.note.saved_db_only")
         else:
             result["saved_to_local"] = False
             result["save_error"] = save_error_msg
             if "Read-only file system" in save_error_msg or "Permission denied" in save_error_msg:
-                result["note"] = "爬取成功，但无法写入数据库（Docker只读模式）。数据仅在本次返回中有效。"
+                result["note"] = self._t("mcp.note.crawl_readonly")
             else:
-                result["note"] = f"爬取成功但保存失败: {save_error_msg}"
+                result["note"] = self._t("mcp.note.crawl_save_failed", error=save_error_msg)
 
         return result
 
@@ -222,7 +224,7 @@ class SystemManagementTools:
             config_data, all_platforms = self._load_crawl_config()
             target_platforms, ids = self._resolve_target_platforms(all_platforms, platforms)
 
-            print(f"开始临时爬取，平台: {[p.get('name', p['id']) for p in target_platforms]}")
+            print(self._t("mcp.log.start_crawl", platforms=[p.get('name', p['id']) for p in target_platforms]))
 
             # 2. 执行爬取
             advanced = config_data.get("advanced", {})
@@ -257,7 +259,7 @@ class SystemManagementTools:
                 )
             finally:
                 get_cache().clear()
-                print("[System] 缓存已清除")
+                print(self._t("mcp.log.cache_cleared"))
                 storage.cleanup()
 
             # 4. 构建响应
@@ -286,7 +288,7 @@ class SystemManagementTools:
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MCP 爬取结果</title>
+    <title>__MCP_TITLE__</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
         .container { max-width: 900px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
@@ -305,11 +307,13 @@ class SystemManagementTools:
 </head>
 <body>
     <div class="container">
-        <h1>MCP 爬取结果</h1>
+        <h1>__MCP_TITLE__</h1>
 """
 
+        html = html.replace("__MCP_TITLE__", self._t("mcp.html.crawl_result_title"))
+
         # 添加时间戳
-        html += f'        <p class="timestamp">爬取时间: {now.strftime("%Y-%m-%d %H:%M:%S")}</p>\n\n'
+        html += f'        <p class="timestamp">{self._t("mcp.html.crawl_time")}: {now.strftime("%Y-%m-%d %H:%M:%S")}</p>\n\n'
 
         # 遍历每个平台
         for platform_id, titles_data in results.items():
@@ -334,9 +338,9 @@ class SystemManagementTools:
                 html += f'                <span class="rank">{rank}.</span>\n'
                 html += f'                <span class="title">{self._html_escape(title)}</span>\n'
                 if url:
-                    html += f'                <a class="link" href="{self._html_escape(url)}" target="_blank">链接</a>\n'
+                    html += f'                <a class="link" href="{self._html_escape(url)}" target="_blank">{self._t("mcp.html.link")}</a>\n'
                 if mobile_url and mobile_url != url:
-                    html += f'                <a class="link" href="{self._html_escape(mobile_url)}" target="_blank">移动版</a>\n'
+                    html += f'                <a class="link" href="{self._html_escape(mobile_url)}" target="_blank">{self._t("mcp.html.mobile")}</a>\n'
                 html += '            </div>\n'
 
             html += '        </div>\n\n'
@@ -344,7 +348,7 @@ class SystemManagementTools:
         # 失败的平台
         if failed_ids:
             html += '        <div class="failed">\n'
-            html += '            <h3>请求失败的平台</h3>\n'
+            html += f'            <h3>{self._t("report.error.failed_platforms")}</h3>\n'
             html += '            <ul>\n'
             for platform_id in failed_ids:
                 html += f'                <li>{self._html_escape(platform_id)}</li>\n'
@@ -426,11 +430,11 @@ class SystemManagementTools:
                 need_update = local_tuple < remote_tuple
 
                 if need_update:
-                    message = f"发现新版本 {remote_version}，当前版本 {local_version}，建议更新"
+                    message = self._t("report.update.new_version", remote_version=remote_version, current_version=local_version)
                 elif local_tuple > remote_tuple:
-                    message = f"当前版本 {local_version} 高于远程版本 {remote_version}（可能是开发版本）"
+                    message = self._t("mcp.version.current_higher", current_version=local_version, remote_version=remote_version)
                 else:
-                    message = f"当前版本 {local_version} 已是最新版本"
+                    message = self._t("mcp.version.up_to_date", current_version=local_version)
 
                 return {
                     "success": True,
@@ -447,14 +451,14 @@ class SystemManagementTools:
                     "success": False,
                     "name": name,
                     "current_version": local_version,
-                    "error": "获取远程版本超时"
+                    "error": self._t("mcp.error.version_timeout")
                 }
             except requests.exceptions.RequestException as e:
                 return {
                     "success": False,
                     "name": name,
                     "current_version": local_version,
-                    "error": f"网络请求失败: {str(e)}"
+                    "error": self._t("mcp.error.network_request_failed", error=str(e))
                 }
             except Exception as e:
                 return {
@@ -476,7 +480,7 @@ class SystemManagementTools:
                     "success": False,
                     "error": {
                         "code": "CONFIG_NOT_FOUND",
-                        "message": f"配置文件不存在: {config_path}"
+                        "message": self._t("mcp.error.config_file_path_not_found", path=config_path)
                     }
                 }
 
@@ -522,7 +526,7 @@ class SystemManagementTools:
             return {
                 "success": True,
                 "summary": {
-                    "description": "版本检查结果（TrendRadar + MCP Server）",
+                    "description": self._t("mcp.summary.version_check"),
                     "any_update": any_update
                 },
                 "data": {
@@ -537,7 +541,7 @@ class SystemManagementTools:
                 "success": False,
                 "error": {
                     "code": "IMPORT_ERROR",
-                    "message": f"无法导入版本信息: {str(e)}"
+                    "message": self._t("mcp.error.import_version_failed", error=str(e))
                 }
             }
         except Exception as e:

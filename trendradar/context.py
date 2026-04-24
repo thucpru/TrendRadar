@@ -41,6 +41,7 @@ from trendradar.notification import (
 from trendradar.ai import AITranslator
 from trendradar.ai.filter import AIFilter, AIFilterResult
 from trendradar.storage import get_storage_manager
+from trendradar.i18n import t as tr_text, normalize_locale
 
 
 class AppContext:
@@ -75,6 +76,7 @@ class AppContext:
         self.config = config
         self._storage_manager = None
         self._scheduler = None
+        self.locale = normalize_locale(self.config.get("UI_LANGUAGE", "vi-VN"))
 
     # === 配置访问 ===
 
@@ -153,6 +155,9 @@ class AppContext:
     def ai_filter_enabled(self) -> bool:
         """AI 筛选是否启用（基于 filter.method 判断）"""
         return self.filter_method == "ai"
+
+    def t(self, key: str, **kwargs) -> str:
+        return tr_text(key, self.locale, **kwargs)
 
     # === 时间操作 ===
 
@@ -364,6 +369,7 @@ class AppContext:
             ai_analysis=ai_analysis,
             show_new_section=self.show_new_section,
             standalone_data=standalone_data,
+            locale=self.locale,
         )
 
     # === 通知内容渲染 ===
@@ -383,6 +389,7 @@ class AppContext:
             region_order=self.region_order,
             get_time_func=self.get_time,
             show_new_section=self.show_new_section,
+            locale=self.locale,
         )
 
     def render_dingtalk(
@@ -399,6 +406,7 @@ class AppContext:
             region_order=self.region_order,
             get_time_func=self.get_time,
             show_new_section=self.show_new_section,
+            locale=self.locale,
         )
 
     def split_content(
@@ -457,6 +465,7 @@ class AppContext:
             ai_stats=ai_stats,
             report_type=report_type,
             show_new_section=self.show_new_section,
+            locale=self.locale,
         )
 
     # === 通知发送 ===

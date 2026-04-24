@@ -13,6 +13,7 @@ from typing import Dict, List, Optional, Tuple, Union
 from ..services.data_service import DataService
 from ..utils.validators import validate_keyword, validate_limit, validate_threshold, normalize_date_range
 from ..utils.errors import MCPError, InvalidParameterError, DataNotFoundError
+from ..utils.i18n import get_translator
 
 
 class SearchTools:
@@ -26,6 +27,7 @@ class SearchTools:
             project_root: 项目根目录
         """
         self.data_service = DataService(project_root)
+        self._t, self._locale = get_translator(project_root)
 
     def search_news_unified(
         self,
@@ -81,14 +83,14 @@ class SearchTools:
 
             if search_mode not in ["keyword", "fuzzy", "entity"]:
                 raise InvalidParameterError(
-                    f"无效的搜索模式: {search_mode}",
-                    suggestion="支持的模式: keyword, fuzzy, entity"
+                    self._t("mcp.search.error.invalid_search_mode", mode=search_mode),
+                    suggestion=self._t("mcp.search.error.supported_search_modes")
                 )
 
             if sort_by not in ["relevance", "weight", "date"]:
                 raise InvalidParameterError(
-                    f"无效的排序方式: {sort_by}",
-                    suggestion="支持的排序: relevance, weight, date"
+                    self._t("mcp.search.error.invalid_sort_by", sort_by=sort_by),
+                    suggestion=self._t("mcp.search.error.supported_sort_by")
                 )
 
             limit = validate_limit(limit, default=50)
@@ -109,8 +111,8 @@ class SearchTools:
                         "success": False,
                         "error": {
                             "code": "NO_DATA_AVAILABLE",
-                            "message": "output 目录下没有可用的新闻数据",
-                            "suggestion": "请先运行爬虫生成数据，或检查 output 目录"
+                            "message": self._t("mcp.search.error.no_data_available"),
+                            "suggestion": self._t("mcp.search.error.no_data_available_suggestion")
                         }
                     }
 
@@ -156,18 +158,18 @@ class SearchTools:
 
                 # 判断时间范围描述
                 if start_date.date() == datetime.now().date() and start_date == end_date:
-                    time_desc = "今天"
+                    time_desc = self._t("mcp.search.time.today")
                 elif start_date == end_date:
                     time_desc = start_date.strftime("%Y-%m-%d")
                 else:
-                    time_desc = f"{start_date.strftime('%Y-%m-%d')} 至 {end_date.strftime('%Y-%m-%d')}"
+                    time_desc = self._t("mcp.search.time.range", start=start_date.strftime('%Y-%m-%d'), end=end_date.strftime('%Y-%m-%d'))
 
                 # 构建错误消息
                 if earliest and latest:
-                    available_desc = f"{earliest.strftime('%Y-%m-%d')} 至 {latest.strftime('%Y-%m-%d')}"
-                    message = f"未找到匹配的新闻（查询范围: {time_desc}，可用数据: {available_desc}）"
+                    available_desc = self._t("mcp.search.time.range", start=earliest.strftime('%Y-%m-%d'), end=latest.strftime('%Y-%m-%d'))
+                    message = self._t("mcp.search.message.no_match_with_available", time_desc=time_desc, available_desc=available_desc)
                 else:
-                    message = f"未找到匹配的新闻（{time_desc}）"
+                    message = self._t("mcp.search.message.no_match", time_desc=time_desc)
 
                 result = {
                     "success": True,
@@ -194,22 +196,22 @@ class SearchTools:
 
             # 构建时间范围描述（正确判断是否为今天）
             if start_date.date() == datetime.now().date() and start_date == end_date:
-                time_range_desc = "今天"
+                time_range_desc = self._t("mcp.search.time.today")
             elif start_date == end_date:
                 time_range_desc = start_date.strftime("%Y-%m-%d")
             else:
-                time_range_desc = f"{start_date.strftime('%Y-%m-%d')} 至 {end_date.strftime('%Y-%m-%d')}"
+                time_range_desc = self._t("mcp.search.time.range", start=start_date.strftime('%Y-%m-%d'), end=end_date.strftime('%Y-%m-%d'))
 
             result = {
                 "success": True,
                 "summary": {
-                    "description": f"新闻搜索结果（{search_mode}模式）",
+                    "description": self._t("mcp.search.summary.news_result", mode=search_mode),
                     "total_found": len(all_matches),
                     "returned": len(results),
                     "requested_limit": limit,
                     "search_mode": search_mode,
                     "query": query,
-                    "platforms": platforms or "所有平台",
+                    "platforms": platforms or self._t("shared.label.all"),
                     "time_range": time_range_desc,
                     "sort_by": sort_by
                 },
@@ -219,7 +221,7 @@ class SearchTools:
             if search_mode == "fuzzy":
                 result["summary"]["threshold"] = threshold
                 if len(all_matches) < limit:
-                    result["note"] = f"模糊搜索模式下，相似度阈值 {threshold} 仅匹配到 {len(all_matches)} 条结果"
+                    result["note"] = self._t("mcp.search.note.fuzzy_limited", threshold=threshold, count=len(all_matches))
 
             # 如果启用 RSS 搜索，同时搜索 RSS 数据
             if include_rss:
@@ -523,15 +525,15 @@ class SearchTools:
             elif time_preset == "custom":
                 if not start_date or not end_date:
                     raise InvalidParameterError(
-                        "自定义时间范围需要提供 start_date 和 end_date",
-                        suggestion="请提供 start_date 和 end_date 参数"
+                        self._t("mcp.search.error.custom_range_missing"),
+                        suggestion=self._t("mcp.search.error.custom_range_missing_suggestion")
                     )
                 search_start = start_date
                 search_end = end_date
             else:
                 raise InvalidParameterError(
-                    f"不支持的时间范围: {time_preset}",
-                    suggestion="请使用 'yesterday', 'last_week', 'last_month' 或 'custom'"
+                    self._t("mcp.search.error.unsupported_time_preset", preset=time_preset),
+                    suggestion=self._t("mcp.search.error.supported_time_preset")
                 )
 
             # 提取参考文本的关键词
@@ -539,8 +541,8 @@ class SearchTools:
 
             if not reference_keywords:
                 raise InvalidParameterError(
-                    "无法从参考文本中提取关键词",
-                    suggestion="请提供更详细的文本内容"
+                    self._t("mcp.search.error.no_keywords_extracted"),
+                    suggestion=self._t("mcp.search.error.no_keywords_extracted_suggestion")
                 )
 
             # 收集所有相关新闻
@@ -597,7 +599,7 @@ class SearchTools:
                     pass
                 except Exception as e:
                     # 记录错误但继续处理其他日期
-                    print(f"Warning: 处理日期 {current_date.strftime('%Y-%m-%d')} 时出错: {e}")
+                    print(self._t("mcp.search.warning.process_date_failed", date=current_date.strftime('%Y-%m-%d'), error=e))
 
                 # 移动到下一天
                 current_date += timedelta(days=1)
@@ -613,7 +615,7 @@ class SearchTools:
                         "start": search_start.strftime("%Y-%m-%d"),
                         "end": search_end.strftime("%Y-%m-%d")
                     },
-                    "message": "未找到相关新闻"
+                    "message": self._t("mcp.search.message.no_related_news")
                 }
 
             # 按相似度排序
@@ -629,7 +631,7 @@ class SearchTools:
             result = {
                 "success": True,
                 "summary": {
-                    "description": "历史相关新闻搜索结果",
+                    "description": self._t("mcp.search.summary.history_related_result"),
                     "total_found": len(all_related_news),
                     "returned": len(results),
                     "requested_limit": limit,
@@ -654,7 +656,7 @@ class SearchTools:
             }
 
             if len(all_related_news) < limit:
-                result["note"] = f"相关性阈值 {threshold} 下仅找到 {len(all_related_news)} 条相关新闻"
+                result["note"] = self._t("mcp.search.note.related_limited", threshold=threshold, count=len(all_related_news))
 
             return result
 
@@ -808,7 +810,7 @@ class SearchTools:
             return {
                 "success": True,
                 "summary": {
-                    "description": "相关新闻搜索结果",
+                    "description": self._t("mcp.search.summary.related_result"),
                     "total_found": len(all_related_news),
                     "returned": len(results),
                     "reference_title": reference_title,

@@ -9,6 +9,7 @@ from datetime import datetime
 from typing import Dict, List, Optional, Callable
 
 from trendradar.report.formatter import format_title_for_platform
+from trendradar.i18n import t as tr_text
 
 
 # 默认区域顺序
@@ -24,6 +25,7 @@ def render_feishu_content(
     get_time_func: Optional[Callable[[], datetime]] = None,
     rss_items: Optional[list] = None,
     show_new_section: bool = True,
+    locale: str = "vi-VN",
 ) -> str:
     """渲染飞书通知内容（支持热榜+RSS合并）
 
@@ -43,10 +45,27 @@ def render_feishu_content(
     if region_order is None:
         region_order = DEFAULT_REGION_ORDER
 
+    unit_items = tr_text("shared.unit.items", locale)
+    section_hot_words = tr_text("notification.section.hot_words_stats", locale)
+    section_new_hot_news = tr_text(
+        "notification.section.new_hot_news", locale, count=report_data.get("total_new_count", 0)
+    )
+    section_failed_platforms = tr_text("notification.section.failed_platforms", locale)
+    empty_incremental = tr_text("notification.empty.incremental", locale)
+    empty_current = tr_text("notification.empty.current", locale)
+    empty_default = tr_text("notification.empty.default", locale)
+    meta_updated_at = tr_text("notification.meta.updated_at", locale, time="{time}")
+    meta_version_update = tr_text(
+        "notification.meta.version_update",
+        locale,
+        remote_version=update_info["remote_version"] if update_info else "",
+        current_version=update_info["current_version"] if update_info else "",
+    )
+
     # 生成热点词汇统计部分
     stats_content = ""
     if report_data["stats"]:
-        stats_content += "📊 **热点词汇统计**\n\n"
+        stats_content += f"{section_hot_words}\n\n"
 
         total_count = len(report_data["stats"])
 
@@ -57,11 +76,11 @@ def render_feishu_content(
             sequence_display = f"<font color='grey'>[{i + 1}/{total_count}]</font>"
 
             if count >= 10:
-                stats_content += f"🔥 {sequence_display} **{word}** : <font color='red'>{count}</font> 条\n\n"
+                stats_content += f"🔥 {sequence_display} **{word}** : <font color='red'>{count}</font> {unit_items}\n\n"
             elif count >= 5:
-                stats_content += f"📈 {sequence_display} **{word}** : <font color='orange'>{count}</font> 条\n\n"
+                stats_content += f"📈 {sequence_display} **{word}** : <font color='orange'>{count}</font> {unit_items}\n\n"
             else:
-                stats_content += f"📌 {sequence_display} **{word}** : {count} 条\n\n"
+                stats_content += f"📌 {sequence_display} **{word}** : {count} {unit_items}\n\n"
 
             for j, title_data in enumerate(stat["titles"], 1):
                 formatted_title = format_title_for_platform(
@@ -79,12 +98,12 @@ def render_feishu_content(
     new_titles_content = ""
     if show_new_section and report_data["new_titles"]:
         new_titles_content += (
-            f"🆕 **本次新增热点新闻** (共 {report_data['total_new_count']} 条)\n\n"
+            f"{section_new_hot_news}\n\n"
         )
 
         for source_data in report_data["new_titles"]:
             new_titles_content += (
-                f"**{source_data['source_name']}** ({len(source_data['titles'])} 条):\n"
+                f"**{source_data['source_name']}** ({len(source_data['titles'])} {unit_items}):\n"
             )
 
             for j, title_data in enumerate(source_data["titles"], 1):
@@ -100,7 +119,7 @@ def render_feishu_content(
     # RSS 内容
     rss_content = ""
     if rss_items:
-        rss_content = _render_rss_section_feishu(rss_items, separator)
+        rss_content = _render_rss_section_feishu(rss_items, separator, locale)
 
     # 准备各区域内容映射
     region_contents = {
@@ -120,29 +139,29 @@ def render_feishu_content(
 
     if not text_content:
         if mode == "incremental":
-            mode_text = "增量模式下暂无新增匹配的热点词汇"
+            mode_text = empty_incremental
         elif mode == "current":
-            mode_text = "当前榜单模式下暂无匹配的热点词汇"
+            mode_text = empty_current
         else:
-            mode_text = "暂无匹配的热点词汇"
+            mode_text = empty_default
         text_content = f"📭 {mode_text}\n\n"
 
     if report_data["failed_ids"]:
-        if text_content and "暂无匹配" not in text_content:
+        if text_content and empty_default not in text_content:
             text_content += f"\n{separator}\n\n"
 
-        text_content += "⚠️ **数据获取失败的平台：**\n\n"
+        text_content += f"{section_failed_platforms}\n\n"
         for i, id_value in enumerate(report_data["failed_ids"], 1):
             text_content += f"  • <font color='red'>{id_value}</font>\n"
 
     # 获取当前时间
     now = get_time_func() if get_time_func else datetime.now()
     text_content += (
-        f"\n\n<font color='grey'>更新时间：{now.strftime('%Y-%m-%d %H:%M:%S')}</font>"
+        f"\n\n<font color='grey'>{meta_updated_at.format(time=now.strftime('%Y-%m-%d %H:%M:%S'))}</font>"
     )
 
     if update_info:
-        text_content += f"\n<font color='grey'>TrendRadar 发现新版本 {update_info['remote_version']}，当前 {update_info['current_version']}</font>"
+        text_content += f"\n<font color='grey'>{meta_version_update}</font>"
 
     return text_content
 
@@ -155,6 +174,7 @@ def render_dingtalk_content(
     get_time_func: Optional[Callable[[], datetime]] = None,
     rss_items: Optional[list] = None,
     show_new_section: bool = True,
+    locale: str = "vi-VN",
 ) -> str:
     """渲染钉钉通知内容（支持热榜+RSS合并）
 
@@ -178,16 +198,33 @@ def render_dingtalk_content(
     )
     now = get_time_func() if get_time_func else datetime.now()
 
+    unit_items = tr_text("shared.unit.items", locale)
+    section_hot_words = tr_text("notification.section.hot_words_stats", locale)
+    section_new_hot_news = tr_text(
+        "notification.section.new_hot_news", locale, count=report_data.get("total_new_count", 0)
+    )
+    section_failed_platforms = tr_text("notification.section.failed_platforms", locale)
+    empty_incremental = tr_text("notification.empty.incremental", locale)
+    empty_current = tr_text("notification.empty.current", locale)
+    empty_default = tr_text("notification.empty.default", locale)
+    meta_updated_at = tr_text("notification.meta.updated_at", locale, time="{time}")
+    meta_version_update = tr_text(
+        "notification.meta.version_update",
+        locale,
+        remote_version=update_info["remote_version"] if update_info else "",
+        current_version=update_info["current_version"] if update_info else "",
+    )
+
     # 头部信息
-    header_content = f"**总新闻数：** {total_titles}\n\n"
-    header_content += f"**时间：** {now.strftime('%Y-%m-%d %H:%M:%S')}\n\n"
-    header_content += "**类型：** 热点分析报告\n\n"
+    header_content = f"**{tr_text('notification.header.total_news', locale, count=total_titles)}**\n\n"
+    header_content += f"**{tr_text('notification.header.time', locale, time=now.strftime('%Y-%m-%d %H:%M:%S'))}**\n\n"
+    header_content += f"**{tr_text('notification.header.type', locale, type=tr_text('notification.report.type.hot_analysis', locale))}**\n\n"
     header_content += "---\n\n"
 
     # 生成热点词汇统计部分
     stats_content = ""
     if report_data["stats"]:
-        stats_content += "📊 **热点词汇统计**\n\n"
+        stats_content += f"{section_hot_words}\n\n"
 
         total_count = len(report_data["stats"])
 
@@ -198,11 +235,11 @@ def render_dingtalk_content(
             sequence_display = f"[{i + 1}/{total_count}]"
 
             if count >= 10:
-                stats_content += f"🔥 {sequence_display} **{word}** : **{count}** 条\n\n"
+                stats_content += f"🔥 {sequence_display} **{word}** : **{count}** {unit_items}\n\n"
             elif count >= 5:
-                stats_content += f"📈 {sequence_display} **{word}** : **{count}** 条\n\n"
+                stats_content += f"📈 {sequence_display} **{word}** : **{count}** {unit_items}\n\n"
             else:
-                stats_content += f"📌 {sequence_display} **{word}** : {count} 条\n\n"
+                stats_content += f"📌 {sequence_display} **{word}** : {count} {unit_items}\n\n"
 
             for j, title_data in enumerate(stat["titles"], 1):
                 formatted_title = format_title_for_platform(
@@ -220,11 +257,11 @@ def render_dingtalk_content(
     new_titles_content = ""
     if show_new_section and report_data["new_titles"]:
         new_titles_content += (
-            f"🆕 **本次新增热点新闻** (共 {report_data['total_new_count']} 条)\n\n"
+            f"{section_new_hot_news}\n\n"
         )
 
         for source_data in report_data["new_titles"]:
-            new_titles_content += f"**{source_data['source_name']}** ({len(source_data['titles'])} 条):\n\n"
+            new_titles_content += f"**{source_data['source_name']}** ({len(source_data['titles'])} {unit_items}):\n\n"
 
             for j, title_data in enumerate(source_data["titles"], 1):
                 title_data_copy = title_data.copy()
@@ -239,7 +276,7 @@ def render_dingtalk_content(
     # RSS 内容
     rss_content = ""
     if rss_items:
-        rss_content = _render_rss_section_markdown(rss_items)
+        rss_content = _render_rss_section_markdown(rss_items, locale)
 
     # 准备各区域内容映射
     region_contents = {
@@ -261,25 +298,25 @@ def render_dingtalk_content(
 
     if not has_content:
         if mode == "incremental":
-            mode_text = "增量模式下暂无新增匹配的热点词汇"
+            mode_text = empty_incremental
         elif mode == "current":
-            mode_text = "当前榜单模式下暂无匹配的热点词汇"
+            mode_text = empty_current
         else:
-            mode_text = "暂无匹配的热点词汇"
+            mode_text = empty_default
         text_content += f"📭 {mode_text}\n\n"
 
     if report_data["failed_ids"]:
-        if "暂无匹配" not in text_content:
+        if empty_default not in text_content:
             text_content += "\n---\n\n"
 
-        text_content += "⚠️ **数据获取失败的平台：**\n\n"
+        text_content += f"{section_failed_platforms}\n\n"
         for i, id_value in enumerate(report_data["failed_ids"], 1):
             text_content += f"  • **{id_value}**\n"
 
-    text_content += f"\n\n> 更新时间：{now.strftime('%Y-%m-%d %H:%M:%S')}"
+    text_content += f"\n\n> {meta_updated_at.format(time=now.strftime('%Y-%m-%d %H:%M:%S'))}"
 
     if update_info:
-        text_content += f"\n> TrendRadar 发现新版本 **{update_info['remote_version']}**，当前 **{update_info['current_version']}**"
+        text_content += f"\n> {meta_version_update}"
 
     return text_content
 
@@ -287,7 +324,7 @@ def render_dingtalk_content(
 
 # === RSS 内容渲染辅助函数（用于合并推送） ===
 
-def _render_rss_section_feishu(rss_items: list, separator: str = "---") -> str:
+def _render_rss_section_feishu(rss_items: list, separator: str = "---", locale: str = "vi-VN") -> str:
     """渲染 RSS 内容区块（飞书格式，用于合并推送）"""
     if not rss_items:
         return ""
@@ -300,12 +337,14 @@ def _render_rss_section_feishu(rss_items: list, separator: str = "---") -> str:
             feeds_map[feed_id] = []
         feeds_map[feed_id].append(item)
 
-    text_content = f"📰 **RSS 订阅更新** (共 {len(rss_items)} 条)\n\n"
+    section_rss_updates = tr_text("notification.section.rss_updates", locale, count=len(rss_items))
+    unit_items = tr_text("shared.unit.items", locale)
+    text_content = f"{section_rss_updates}\n\n"
 
     for feed_id, items in feeds_map.items():
         feed_name = items[0].get("feed_name", feed_id) if items else feed_id
 
-        text_content += f"**{feed_name}** ({len(items)} 条)\n\n"
+        text_content += f"**{feed_name}** ({len(items)} {unit_items})\n\n"
 
         for i, item in enumerate(items, 1):
             title = item.get("title", "")
@@ -330,7 +369,7 @@ def _render_rss_section_feishu(rss_items: list, separator: str = "---") -> str:
     return text_content.rstrip("\n")
 
 
-def _render_rss_section_markdown(rss_items: list) -> str:
+def _render_rss_section_markdown(rss_items: list, locale: str = "vi-VN") -> str:
     """渲染 RSS 内容区块（通用 Markdown 格式，用于合并推送）"""
     if not rss_items:
         return ""
@@ -343,12 +382,14 @@ def _render_rss_section_markdown(rss_items: list) -> str:
             feeds_map[feed_id] = []
         feeds_map[feed_id].append(item)
 
-    text_content = f"📰 **RSS 订阅更新** (共 {len(rss_items)} 条)\n\n"
+    section_rss_updates = tr_text("notification.section.rss_updates", locale, count=len(rss_items))
+    unit_items = tr_text("shared.unit.items", locale)
+    text_content = f"{section_rss_updates}\n\n"
 
     for feed_id, items in feeds_map.items():
         feed_name = items[0].get("feed_name", feed_id) if items else feed_id
 
-        text_content += f"**{feed_name}** ({len(items)} 条)\n"
+        text_content += f"**{feed_name}** ({len(items)} {unit_items})\n"
 
         for i, item in enumerate(items, 1):
             title = item.get("title", "")

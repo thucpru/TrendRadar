@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from typing import Tuple, Dict, Optional
 
 from .errors import InvalidParameterError
+from .i18n import tr
 
 
 class DateParser:
@@ -121,8 +122,8 @@ class DateParser:
         """
         if not date_query or not isinstance(date_query, str):
             raise InvalidParameterError(
-                "日期查询字符串不能为空",
-                suggestion="请提供有效的日期查询，如：今天、昨天、2025-10-10"
+                tr("mcp.date.error.query_empty"),
+                suggestion=tr("mcp.date.error.query_empty_suggestion")
             )
 
         date_query = date_query.strip().lower()
@@ -143,8 +144,8 @@ class DateParser:
             days = int(cn_days_ago_match.group(1))
             if days > 365:
                 raise InvalidParameterError(
-                    f"天数过大: {days}天",
-                    suggestion="请使用小于365天的相对日期或使用绝对日期"
+                    tr("mcp.date.error.days_too_large", days=days),
+                    suggestion=tr("mcp.date.error.days_too_large_suggestion")
                 )
             return datetime.now() - timedelta(days=days)
 
@@ -153,8 +154,8 @@ class DateParser:
             days = int(en_days_ago_match.group(1))
             if days > 365:
                 raise InvalidParameterError(
-                    f"天数过大: {days}天",
-                    suggestion="请使用小于365天的相对日期或使用绝对日期"
+                    tr("mcp.date.error.days_too_large", days=days),
+                    suggestion=tr("mcp.date.error.days_too_large_suggestion")
                 )
             return datetime.now() - timedelta(days=days)
 
@@ -184,8 +185,8 @@ class DateParser:
                 return datetime(year, month, day)
             except ValueError as e:
                 raise InvalidParameterError(
-                    f"无效的日期: {date_query}",
-                    suggestion=f"日期值错误: {str(e)}"
+                    tr("mcp.date.error.invalid_date", date_query=date_query),
+                    suggestion=tr("mcp.date.error.invalid_date_value", error=str(e))
                 )
 
         # 7. 尝试解析中文日期：MM月DD日 或 YYYY年MM月DD日
@@ -209,8 +210,8 @@ class DateParser:
                 return datetime(year, month, day)
             except ValueError as e:
                 raise InvalidParameterError(
-                    f"无效的日期: {date_query}",
-                    suggestion=f"日期值错误: {str(e)}"
+                    tr("mcp.date.error.invalid_date", date_query=date_query),
+                    suggestion=tr("mcp.date.error.invalid_date_value", error=str(e))
                 )
 
         # 8. 尝试解析斜杠格式：YYYY/MM/DD 或 MM/DD
@@ -232,19 +233,14 @@ class DateParser:
                 return datetime(year, month, day)
             except ValueError as e:
                 raise InvalidParameterError(
-                    f"无效的日期: {date_query}",
-                    suggestion=f"日期值错误: {str(e)}"
+                    tr("mcp.date.error.invalid_date", date_query=date_query),
+                    suggestion=tr("mcp.date.error.invalid_date_value", error=str(e))
                 )
 
         # 如果所有格式都不匹配
         raise InvalidParameterError(
-            f"无法识别的日期格式: {date_query}",
-            suggestion=(
-                "支持的格式:\n"
-                "- 相对日期: 今天、昨天、前天、3天前、today、yesterday、3 days ago\n"
-                "- 星期: 上周一、本周三、last monday、this friday\n"
-                "- 绝对日期: 2025-10-10、10月10日、2025年10月10日"
-            )
+            tr("mcp.date.error.unrecognized_format", date_query=date_query),
+            suggestion=tr("mcp.date.error.unrecognized_format_suggestion")
         )
 
     @staticmethod
@@ -304,8 +300,8 @@ class DateParser:
         """
         if date.date() > datetime.now().date():
             raise InvalidParameterError(
-                f"不能查询未来的日期: {date.strftime('%Y-%m-%d')}",
-                suggestion="请使用今天或过去的日期"
+                tr("mcp.date.error.future_date", date=date.strftime('%Y-%m-%d')),
+                suggestion=tr("mcp.date.error.future_date_suggestion")
             )
 
     @staticmethod
@@ -323,8 +319,8 @@ class DateParser:
         days_ago = (datetime.now().date() - date.date()).days
         if days_ago > max_days:
             raise InvalidParameterError(
-                f"日期太久远: {date.strftime('%Y-%m-%d')} ({days_ago}天前)",
-                suggestion=f"请查询{max_days}天内的数据"
+                tr("mcp.date.error.too_old", date=date.strftime('%Y-%m-%d'), days_ago=days_ago),
+                suggestion=tr("mcp.date.error.too_old_suggestion", max_days=max_days)
             )
 
     @staticmethod
@@ -369,8 +365,8 @@ class DateParser:
         """
         if not expression or not isinstance(expression, str):
             raise InvalidParameterError(
-                "日期表达式不能为空",
-                suggestion="请提供有效的日期表达式，如：本周、最近7天、last week"
+                tr("mcp.date.error.expression_empty"),
+                suggestion=tr("mcp.date.error.expression_empty_suggestion")
             )
 
         expression_lower = expression.strip().lower()
@@ -401,8 +397,12 @@ class DateParser:
             supported_en = ["today", "yesterday", "this week", "last week",
                            "this month", "last month", "last 7 days", "last N days"]
             raise InvalidParameterError(
-                f"无法识别的日期表达式: {expression}",
-                suggestion=f"支持的表达式:\n中文: {', '.join(supported_cn)}\n英文: {', '.join(supported_en)}"
+                tr("mcp.date.error.unrecognized_expression", expression=expression),
+                suggestion=tr(
+                    "mcp.date.error.unrecognized_expression_suggestion",
+                    supported_cn=', '.join(supported_cn),
+                    supported_en=', '.join(supported_en)
+                )
             )
 
         # 3. 根据 normalized 类型计算日期范围
@@ -439,11 +439,11 @@ class DateParser:
         """
         # 单日类型
         if normalized == "today":
-            return today, today, "今天"
+            return today, today, tr("mcp.date.desc.today")
 
         if normalized == "yesterday":
             yesterday = today - timedelta(days=1)
-            return yesterday, yesterday, "昨天"
+            return yesterday, yesterday, tr("mcp.date.desc.yesterday")
 
         # 本周（周一到周日）
         if normalized == "this_week":
@@ -454,7 +454,7 @@ class DateParser:
             # 如果本周还没结束，end 不能超过今天
             if end > today:
                 end = today
-            return start, end, f"本周（周一到周日，{start.strftime('%m-%d')} 至 {end.strftime('%m-%d')}）"
+            return start, end, tr("mcp.date.desc.this_week", start=start.strftime('%m-%d'), end=end.strftime('%m-%d'))
 
         # 上周（上周一到上周日）
         if normalized == "last_week":
@@ -464,12 +464,12 @@ class DateParser:
             # 上周一
             start = this_monday - timedelta(days=7)
             end = start + timedelta(days=6)
-            return start, end, f"上周（{start.strftime('%m-%d')} 至 {end.strftime('%m-%d')}）"
+            return start, end, tr("mcp.date.desc.last_week", start=start.strftime('%m-%d'), end=end.strftime('%m-%d'))
 
         # 本月（本月1日到今天）
         if normalized == "this_month":
             start = today.replace(day=1)
-            return start, today, f"本月（{start.strftime('%m-%d')} 至 {today.strftime('%m-%d')}）"
+            return start, today, tr("mcp.date.desc.this_month", start=start.strftime('%m-%d'), end=today.strftime('%m-%d'))
 
         # 上月（上月1日到上月最后一天）
         if normalized == "last_month":
@@ -477,17 +477,17 @@ class DateParser:
             first_of_this_month = today.replace(day=1)
             end = first_of_this_month - timedelta(days=1)
             start = end.replace(day=1)
-            return start, end, f"上月（{start.strftime('%Y-%m-%d')} 至 {end.strftime('%Y-%m-%d')}）"
+            return start, end, tr("mcp.date.desc.last_month", start=start.strftime('%Y-%m-%d'), end=end.strftime('%Y-%m-%d'))
 
         # 最近N天 (last_N_days 格式)
         match = re.match(r'last_(\d+)_days', normalized)
         if match:
             days = int(match.group(1))
             start = today - timedelta(days=days - 1)  # 包含今天，所以是 days-1
-            return start, today, f"最近{days}天（{start.strftime('%m-%d')} 至 {today.strftime('%m-%d')}）"
+            return start, today, tr("mcp.date.desc.last_n_days", days=days, start=start.strftime('%m-%d'), end=today.strftime('%m-%d'))
 
         # 兜底：返回今天
-        return today, today, "今天（默认）"
+        return today, today, tr("mcp.date.desc.today_default")
 
     @staticmethod
     def get_supported_expressions() -> Dict[str, list]:

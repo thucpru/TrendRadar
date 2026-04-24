@@ -13,6 +13,7 @@ import yaml
 import ast
 
 from .errors import InvalidParameterError
+from .i18n import tr
 from .date_parser import DateParser
 
 
@@ -189,7 +190,7 @@ def get_supported_platforms() -> List[str]:
             _platforms_config_mtime = current_mtime
             return _platforms_cache
     except Exception as e:
-        print(f"警告：无法加载平台配置: {e}")
+        print(tr("validator.warning.load_platform_failed", error=e))
         return []
 
 
@@ -240,7 +241,7 @@ def validate_platforms(platforms: Optional[Union[List[str], str]]) -> List[str]:
 
     # 如果配置加载失败（supported_platforms为空），允许所有平台通过
     if not supported_platforms:
-        print("警告：平台配置未加载，跳过平台验证")
+        print(tr("validator.warning.skip_platform_validation"))
         return platforms
 
     # 验证每个平台是否在配置中

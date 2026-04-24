@@ -13,6 +13,7 @@ import yaml
 
 from .config import parse_multi_account_config, validate_paired_configs
 from trendradar.utils.time import DEFAULT_TIMEZONE
+from trendradar.i18n import normalize_locale
 
 
 def _get_env_bool(key: str) -> Optional[bool]:
@@ -59,6 +60,7 @@ def _load_app_config(config_data: Dict) -> Dict:
         "CONFIGS_VERSION_CHECK_URL": advanced.get("configs_version_check_url", ""),
         "SHOW_VERSION_UPDATE": app_config.get("show_version_update", True),
         "TIMEZONE": _get_env_str("TIMEZONE") or app_config.get("timezone", DEFAULT_TIMEZONE),
+        "UI_LANGUAGE": normalize_locale(_get_env_str("UI_LANGUAGE") or app_config.get("ui_language", "vi-VN")),
         "DEBUG": _get_env_bool("DEBUG") if _get_env_bool("DEBUG") is not None else advanced.get("debug", False),
     }
 

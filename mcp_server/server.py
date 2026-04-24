@@ -21,6 +21,7 @@ from .tools.article_reader import ArticleReaderTools
 from .tools.notification import NotificationTools
 from .utils.date_parser import DateParser
 from .utils.errors import MCPError
+from .utils.i18n import tr
 
 
 # 创建 FastMCP 2.0 应用
@@ -59,7 +60,7 @@ async def get_platforms_resource() -> str:
     )
     return json.dumps({
         "platforms": config.get("platforms", []),
-        "description": "TrendRadar 支持的热榜平台列表"
+        "description": tr("mcp.desc.trending_platforms")
     }, ensure_ascii=False, indent=2)
 
 
@@ -74,7 +75,7 @@ async def get_rss_feeds_resource() -> str:
     status = await asyncio.to_thread(tools['data'].get_rss_feeds_status)
     return json.dumps({
         "feeds": status.get("today_feeds", {}),
-        "description": "TrendRadar 支持的 RSS 订阅源列表"
+        "description": tr("mcp.desc.rss_feeds")
     }, ensure_ascii=False, indent=2)
 
 
@@ -91,7 +92,7 @@ async def get_available_dates_resource() -> str:
     )
     return json.dumps({
         "dates": result.get("data", {}).get("local", {}).get("dates", []),
-        "description": "本地存储中可查询的日期列表"
+        "description": tr("mcp.desc.available_dates")
     }, ensure_ascii=False, indent=2)
 
 
@@ -109,7 +110,7 @@ async def get_keywords_resource() -> str:
     return json.dumps({
         "word_groups": config.get("word_groups", []),
         "total_groups": config.get("total_groups", 0),
-        "description": "TrendRadar 关注词配置"
+        "description": tr("mcp.desc.keywords")
     }, ensure_ascii=False, indent=2)
 
 

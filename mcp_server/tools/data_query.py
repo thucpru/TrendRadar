@@ -18,6 +18,7 @@ from ..utils.validators import (
     normalize_date_range
 )
 from ..utils.errors import MCPError
+from ..utils.i18n import get_translator
 
 
 class DataQueryTools:
@@ -31,6 +32,7 @@ class DataQueryTools:
             project_root: 项目根目录
         """
         self.data_service = DataService(project_root)
+        self._t, self._locale = get_translator(project_root)
 
     def get_latest_news(
         self,
@@ -70,10 +72,10 @@ class DataQueryTools:
             return {
                 "success": True,
                 "summary": {
-                    "description": "最新一批爬取的新闻数据",
+                    "description": self._t("mcp.summary.latest_news"),
                     "total": len(news_list),
                     "returned": len(news_list),
-                    "platforms": platforms or "全部平台"
+                    "platforms": platforms or self._t("shared.label.all")
                 },
                 "data": news_list
             }
@@ -198,8 +200,8 @@ class DataQueryTools:
                     "success": False,
                     "error": {
                         "code": "INVALID_PARAMETER",
-                        "message": f"不支持的提取模式: {extract_mode}",
-                        "suggestion": "支持的模式: keywords, auto_extract"
+                        "message": self._t("mcp.error.unsupported_extract_mode", mode=extract_mode),
+                        "suggestion": self._t("mcp.error.supported_modes", modes="keywords, auto_extract")
                     }
                 }
 
@@ -293,12 +295,12 @@ class DataQueryTools:
             return {
                 "success": True,
                 "summary": {
-                    "description": f"按日期查询的新闻（{target_date.strftime('%Y-%m-%d')}）",
+                    "description": self._t("mcp.summary.news_by_date", date=target_date.strftime('%Y-%m-%d')),
                     "total": len(news_list),
                     "returned": len(news_list),
                     "date": target_date.strftime("%Y-%m-%d"),
                     "date_range": date_range,
-                    "platforms": platforms or "全部平台"
+                    "platforms": platforms or self._t("shared.label.all")
                 },
                 "data": news_list
             }
@@ -353,11 +355,11 @@ class DataQueryTools:
             return {
                 "success": True,
                 "summary": {
-                    "description": f"最近 {days} 天的 RSS 订阅数据" if days > 1 else "最新的 RSS 订阅数据",
+                    "description": self._t("mcp.summary.latest_rss_days", days=days) if days > 1 else self._t("mcp.summary.latest_rss"),
                     "total": len(rss_list),
                     "returned": len(rss_list),
                     "days": days,
-                    "feeds": feeds or "全部订阅源"
+                    "feeds": feeds or self._t("shared.label.all")
                 },
                 "data": rss_list
             }
@@ -415,11 +417,11 @@ class DataQueryTools:
             return {
                 "success": True,
                 "summary": {
-                    "description": f"RSS 搜索结果（关键词: {keyword}）",
+                    "description": self._t("mcp.summary.rss_search", keyword=keyword),
                     "total": len(rss_list),
                     "returned": len(rss_list),
                     "keyword": keyword,
-                    "feeds": feeds or "全部订阅源",
+                    "feeds": feeds or self._t("shared.label.all"),
                     "days": days
                 },
                 "data": rss_list

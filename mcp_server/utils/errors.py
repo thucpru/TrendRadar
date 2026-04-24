@@ -6,6 +6,8 @@
 
 from typing import Optional, List, Callable
 
+from .i18n import tr
+
 
 # ==================== 延迟加载支持的平台列表 ====================
 
@@ -52,7 +54,7 @@ class DataNotFoundError(MCPError):
         super().__init__(
             message=message,
             code="DATA_NOT_FOUND",
-            suggestion=suggestion or "请检查日期范围或等待爬取任务完成"
+            suggestion=suggestion or tr("mcp.error.data_not_found_suggestion")
         )
 
 
@@ -63,7 +65,7 @@ class InvalidParameterError(MCPError):
         super().__init__(
             message=message,
             code="INVALID_PARAMETER",
-            suggestion=suggestion or "请检查参数格式是否正确"
+            suggestion=suggestion or tr("mcp.error.invalid_parameter_suggestion")
         )
 
 
@@ -74,7 +76,7 @@ class ConfigurationError(MCPError):
         super().__init__(
             message=message,
             code="CONFIGURATION_ERROR",
-            suggestion=suggestion or "请检查配置文件是否正确"
+            suggestion=suggestion or tr("mcp.error.configuration_suggestion")
         )
 
 
@@ -83,9 +85,13 @@ class PlatformNotSupportedError(MCPError):
 
     def __init__(self, platform: str):
         supported = _load_supported_platforms()
-        suggestion = f"支持的平台: {', '.join(supported)}" if supported else "请检查 config/config.yaml 中的平台配置"
+        suggestion = (
+            f"{tr('shared.label.all')}: {', '.join(supported)}"
+            if supported
+            else tr("mcp.error.platform_suggestion_empty")
+        )
         super().__init__(
-            message=f"平台 '{platform}' 不受支持",
+            message=tr("mcp.error.platform_not_supported", platform=platform),
             code="PLATFORM_NOT_SUPPORTED",
             suggestion=suggestion
         )
@@ -98,7 +104,7 @@ class CrawlTaskError(MCPError):
         super().__init__(
             message=message,
             code="CRAWL_TASK_ERROR",
-            suggestion=suggestion or "请稍后重试或查看日志"
+            suggestion=suggestion or tr("mcp.error.crawl_task_suggestion")
         )
 
 
@@ -107,7 +113,7 @@ class FileParseError(MCPError):
 
     def __init__(self, file_path: str, reason: str):
         super().__init__(
-            message=f"解析文件 {file_path} 失败: {reason}",
+            message=tr("mcp.error.file_parse", file_path=file_path, reason=reason),
             code="FILE_PARSE_ERROR",
-            suggestion="请检查文件格式是否正确"
+            suggestion=tr("mcp.error.file_parse_suggestion")
         )

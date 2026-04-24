@@ -9,6 +9,7 @@ from typing import Dict, Optional, Any, TypedDict
 from ..services.data_service import DataService
 from ..utils.validators import validate_config_section
 from ..utils.errors import MCPError
+from ..utils.i18n import get_translator
 
 
 class ErrorInfo(TypedDict, total=False):
@@ -37,6 +38,7 @@ class ConfigManagementTools:
             project_root: 项目根目录
         """
         self.data_service = DataService(project_root)
+        self._t, self._locale = get_translator(project_root)
 
     def get_current_config(self, section: Optional[str] = None) -> ConfigResult:
         """
@@ -79,5 +81,5 @@ class ConfigManagementTools:
                 success=False,
                 config=None,
                 section=None,
-                error={"code": "INTERNAL_ERROR", "message": str(e), "suggestion": "请查看服务日志获取详细信息"}
+                error={"code": "INTERNAL_ERROR", "message": str(e), "suggestion": self._t("mcp.error.crawl_task_suggestion")}
             )

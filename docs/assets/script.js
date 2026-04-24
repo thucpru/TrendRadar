@@ -5,6 +5,19 @@
 
 // 编辑器常量
 const EDITOR_LINE_HEIGHT = 19.5;  // 编辑器行高（px），用于滚动定位计算
+const tr = (key, params = {}) => (window.trDocs ? window.trDocs(key, params) : key);
+
+function getInitialYamlText() {
+    return `${tr('docs.editor.initial_config_line1')}\n${tr('docs.editor.initial_config_line2')}\n${tr('docs.editor.initial_config_line3')}`;
+}
+
+function getInitialFrequencyText() {
+    return `${tr('docs.editor.initial_frequency_line1')}\n${tr('docs.editor.initial_frequency_line2')}\n\n[GLOBAL_FILTER]\n\n[WORD_GROUPS]\n`;
+}
+
+function getInitialTimelineText() {
+    return `${tr('docs.editor.initial_timeline_line1')}\n${tr('docs.editor.initial_timeline_line2')}\n${tr('docs.editor.initial_timeline_line3')}`;
+}
 
 // ==========================================
 // 0. 注释高亮功能
@@ -51,20 +64,20 @@ const QR_MODAL_DATA = {
     weixin: {
         icon: '<i class="fa-brands fa-weixin text-green-600"></i>',
         iconBg: 'bg-green-100',
-        title: '不迷路',
-        subtitle: '第一时间获取更新通知',
+        titleKey: 'docs.support.weixin.title',
+        subtitleKey: 'docs.support.weixin.subtitle',
         img: './assets/weixin.webp',
-        alt: '微信公众号',
-        hint: '微信扫码关注公众号'
+        altKey: 'docs.support.weixin.alt',
+        hintKey: 'docs.support.weixin.hint'
     },
     donate: {
         icon: '<i class="fa-solid fa-hand-holding-heart text-emerald-600"></i>',
         iconBg: 'bg-emerald-100',
-        title: '随心赞赏',
-        subtitle: '金额随意，1 元也是鼓励 (´▽`ʃ♡ƪ)',
+        titleKey: 'docs.support.donate.title',
+        subtitleKey: 'docs.support.donate.subtitle',
         img: 'https://cdn-1258574687.cos.ap-shanghai.myqcloud.com/img/%2F2026%2F01%2F18ecce7c224ce0ea4c59394c29e408f8-e0d1db45.webp',
-        alt: '微信支付',
-        hint: '微信扫码 · 丰俭由人'
+        altKey: 'docs.support.donate.alt',
+        hintKey: 'docs.support.donate.hint'
     }
 };
 
@@ -74,11 +87,11 @@ function openQrModal(type) {
     const modal = document.getElementById('qr-modal');
     document.getElementById('qr-modal-icon').className = 'w-10 h-10 rounded-xl flex items-center justify-center text-lg ' + data.iconBg;
     document.getElementById('qr-modal-icon').innerHTML = data.icon;
-    document.getElementById('qr-modal-title').textContent = data.title;
-    document.getElementById('qr-modal-subtitle').textContent = data.subtitle;
+    document.getElementById('qr-modal-title').textContent = tr(data.titleKey);
+    document.getElementById('qr-modal-subtitle').textContent = tr(data.subtitleKey);
     document.getElementById('qr-modal-img').src = data.img;
-    document.getElementById('qr-modal-img').alt = data.alt;
-    document.getElementById('qr-modal-hint').textContent = data.hint;
+    document.getElementById('qr-modal-img').alt = tr(data.altKey);
+    document.getElementById('qr-modal-hint').textContent = tr(data.hintKey);
     modal.classList.remove('hidden');
 }
 
@@ -90,25 +103,23 @@ function closeQrModal() {
 window.openQrModal = openQrModal;
 window.closeQrModal = closeQrModal;
 const MODULE_DEFS = [
-    { id: 1, name: "1. 基础设置", key: "app", editable: false },
-    { id: 2, name: "2. 数据源 - 热榜平台", key: "platforms", editable: true },
-    { id: 3, name: "3. 数据源 - RSS 订阅", key: "rss", editable: true },
-    { id: 4, name: "4. 报告模式", key: "report", editable: true },
-    { id: "4.5", name: "4.5 筛选策略", key: "filter", editable: true },
-    { id: "4.6", name: "4.6 AI 智能筛选", key: "ai_filter", editable: true },
-    { id: 5, name: "5. 推送内容控制", key: "display", editable: true },
-    { id: 6, name: "6. 推送通知", key: "notification", editable: true, partial: true },
-    { id: 7, name: "7. 存储配置", key: "storage", editable: false },
-    { id: 8, name: "8. AI 模型配置", key: "ai", editable: true },
-    { id: 9, name: "9. AI 分析功能", key: "ai_analysis", editable: true },
-    { id: 10, name: "10. AI 翻译功能", key: "ai_translation", editable: true },
-    { id: 11, name: "11. 高级设置", key: "advanced", editable: false }
+    { id: 1, nameKey: "docs.module.app", key: "app", editable: false },
+    { id: 2, nameKey: "docs.module.platforms", key: "platforms", editable: true },
+    { id: 3, nameKey: "docs.module.rss", key: "rss", editable: true },
+    { id: 4, nameKey: "docs.module.report", key: "report", editable: true },
+    { id: "4.5", nameKey: "docs.module.filter", key: "filter", editable: true },
+    { id: "4.6", nameKey: "docs.module.ai_filter", key: "ai_filter", editable: true },
+    { id: 5, nameKey: "docs.module.display", key: "display", editable: true },
+    { id: 6, nameKey: "docs.module.notification", key: "notification", editable: true, partial: true },
+    { id: 7, nameKey: "docs.module.storage", key: "storage", editable: false },
+    { id: 8, nameKey: "docs.module.ai", key: "ai", editable: true },
+    { id: 9, nameKey: "docs.module.ai_analysis", key: "ai_analysis", editable: true },
+    { id: 10, nameKey: "docs.module.ai_translation", key: "ai_translation", editable: true },
+    { id: 11, nameKey: "docs.module.advanced", key: "advanced", editable: false }
 ];
 
 // 初始默认内容 (用于空状态) - 只显示提示文本
-const INITIAL_YAML = `# 在此粘贴你的 config.yaml...
-# 或拖拽文件到编辑器区域
-# 或点击右上角"加载官网最新配置"`;
+const INITIAL_YAML = getInitialYamlText();
 
 // LocalStorage 键名
 const STORAGE_KEY_CONFIG = 'trendradar_config_yaml';
@@ -150,7 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (savedConfig && savedConfig.trim() && savedConfig !== INITIAL_YAML) {
         yamlEditor.value = savedConfig;
         currentYaml = savedConfig;
-        showToast('已恢复上次保存的配置', 'info');
+        showToast(tr('docs.toast.restore_saved_config'), 'info');
     } else {
         yamlEditor.value = INITIAL_YAML;
         currentYaml = INITIAL_YAML;
@@ -160,7 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
         frequencyEditor.value = savedFrequency;
         currentFrequency = savedFrequency;
     } else {
-        frequencyEditor.value = "# 在此粘贴你的 frequency_words.txt 内容...\n# 或拖拽文件到编辑器区域\n\n[GLOBAL_FILTER]\n\n[WORD_GROUPS]\n";
+        frequencyEditor.value = getInitialFrequencyText();
         currentFrequency = frequencyEditor.value;
     }
 
@@ -168,7 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const timelineEditor = document.getElementById('timeline-editor');
     const savedTimeline = localStorage.getItem(STORAGE_KEY_TIMELINE);
 
-    const INITIAL_TIMELINE = `# 在此粘贴你的 timeline.yaml...\n# 或拖拽文件到编辑器区域\n# 或点击右上角"加载官网最新配置"`;
+    const INITIAL_TIMELINE = getInitialTimelineText();
 
     if (savedTimeline && savedTimeline.trim() && savedTimeline !== INITIAL_TIMELINE) {
         timelineEditor.value = savedTimeline;
@@ -221,7 +232,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if ((e.ctrlKey || e.metaKey) && e.key === 's') {
             e.preventDefault();
             saveAllToLocalStorage();
-            showToast('已手动保存配置', 'success');
+            showToast(tr('docs.toast.manual_saved'), 'success');
         }
     });
 
@@ -269,7 +280,7 @@ function initDragAndDrop(editor, type) {
     dropOverlay.innerHTML = `
         <div class="drop-overlay-content">
             <i class="fa-solid fa-cloud-arrow-up text-4xl mb-2"></i>
-            <div class="text-sm font-bold">释放以加载文件</div>
+            <div class="text-sm font-bold">${tr('docs.drop.release_to_load')}</div>
             <div class="text-xs opacity-75">${type === 'config' ? 'config.yaml' : type === 'timeline' ? 'timeline.yaml' : 'frequency_words.txt'}</div>
         </div>
     `;
@@ -334,7 +345,7 @@ function handleFileDrop(e, type) {
     const isValid = validExtensions.some(ext => fileName.endsWith(ext));
 
     if (!isValid) {
-        showToast(`请拖入 ${type === 'config' || type === 'timeline' ? 'YAML' : 'TXT'} 文件`, 'error');
+        showToast(tr('docs.toast.drop_file_type', { type: type === 'config' || type === 'timeline' ? 'YAML' : 'TXT' }), 'error');
         return;
     }
 
@@ -348,9 +359,9 @@ function handleFileDrop(e, type) {
                 document.getElementById('yaml-editor').value = content;
                 currentYaml = content;
                 syncYamlToUI();
-                showToast(`已加载: ${file.name}`, 'success');
+                showToast(tr('docs.toast.loaded_file', { file: file.name }), 'success');
             } catch (err) {
-                showToast(`YAML 语法错误: ${err.message}`, 'error');
+                showToast(tr('docs.toast.yaml_error', { error: err.message }), 'error');
                 // 仍然加载，让用户修复
                 document.getElementById('yaml-editor').value = content;
                 currentYaml = content;
@@ -362,9 +373,9 @@ function handleFileDrop(e, type) {
                 currentTimeline = content;
                 updateBackdrop('timeline-editor', 'timeline-backdrop');
                 syncTimelineToUI();
-                showToast(`已加载: ${file.name}`, 'success');
+                showToast(tr('docs.toast.loaded_file', { file: file.name }), 'success');
             } catch (err) {
-                showToast(`YAML 语法错误: ${err.message}`, 'error');
+                showToast(tr('docs.toast.yaml_error', { error: err.message }), 'error');
                 document.getElementById('timeline-editor').value = content;
                 currentTimeline = content;
             }
@@ -372,12 +383,12 @@ function handleFileDrop(e, type) {
             document.getElementById('frequency-editor').value = content;
             currentFrequency = content;
             syncFrequencyToUI();
-            showToast(`已加载: ${file.name}`, 'success');
+            showToast(tr('docs.toast.loaded_file', { file: file.name }), 'success');
         }
     };
 
     reader.onerror = () => {
-        showToast('文件读取失败', 'error');
+        showToast(tr('docs.toast.file_read_failed'), 'error');
     };
 
     reader.readAsText(file);
@@ -427,7 +438,7 @@ function saveToLocalStorage() {
 
 // 格式化时间显示
 function formatSaveTime(isoString) {
-    if (!isoString) return '未保存';
+    if (!isoString) return tr('docs.time.unsaved');
     const date = new Date(isoString);
     const now = new Date();
     const diffMs = now - date;
@@ -435,12 +446,13 @@ function formatSaveTime(isoString) {
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 1) return '刚刚';
-    if (diffMins < 60) return `${diffMins} 分钟前`;
-    if (diffHours < 24) return `${diffHours} 小时前`;
-    if (diffDays < 7) return `${diffDays} 天前`;
+    if (diffMins < 1) return tr('docs.time.just_now');
+    if (diffMins < 60) return tr('docs.time.minutes_ago', { count: diffMins });
+    if (diffHours < 24) return tr('docs.time.hours_ago', { count: diffHours });
+    if (diffDays < 7) return tr('docs.time.days_ago', { count: diffDays });
 
-    return date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const locale = (window.getDocsLocale && window.getDocsLocale()) || 'vi-VN';
+    return date.toLocaleDateString(locale, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
 // 更新保存时间显示
@@ -453,7 +465,7 @@ function updateSaveTimeDisplay() {
     const configLabelEl = document.getElementById('config-save-label');
     if (configTimeEl) {
         configTimeEl.textContent = formatSaveTime(configTime);
-        configTimeEl.title = configTime ? new Date(configTime).toLocaleString('zh-CN') : '未保存';
+        configTimeEl.title = configTime ? new Date(configTime).toLocaleString('zh-CN') : tr('docs.time.unsaved');
         if (configLabelEl) {
             if (configTime) {
                 configLabelEl.classList.remove('hidden');
@@ -468,7 +480,7 @@ function updateSaveTimeDisplay() {
     const frequencyLabelEl = document.getElementById('frequency-save-label');
     if (frequencyTimeEl) {
         frequencyTimeEl.textContent = formatSaveTime(frequencyTime);
-        frequencyTimeEl.title = frequencyTime ? new Date(frequencyTime).toLocaleString('zh-CN') : '未保存';
+        frequencyTimeEl.title = frequencyTime ? new Date(frequencyTime).toLocaleString('zh-CN') : tr('docs.time.unsaved');
         if (frequencyLabelEl) {
             if (frequencyTime) {
                 frequencyLabelEl.classList.remove('hidden');
@@ -484,7 +496,7 @@ function updateSaveTimeDisplay() {
     const timelineLabelEl = document.getElementById('timeline-save-label');
     if (timelineTimeEl) {
         timelineTimeEl.textContent = formatSaveTime(timelineTime);
-        timelineTimeEl.title = timelineTime ? new Date(timelineTime).toLocaleString('zh-CN') : '未保存';
+        timelineTimeEl.title = timelineTime ? new Date(timelineTime).toLocaleString('zh-CN') : tr('docs.time.unsaved');
         if (timelineLabelEl) {
             if (timelineTime) {
                 timelineLabelEl.classList.remove('hidden');
@@ -506,18 +518,18 @@ window.openLoadConfigModal = function() {
     modal.innerHTML = `
         <div class="modal-content" style="max-width: 420px;">
             <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-bold text-gray-800"><i class="fa-solid fa-cloud-arrow-down mr-2 text-blue-500"></i>加载官网最新配置</h3>
+                <h3 class="text-lg font-bold text-gray-800"><i class="fa-solid fa-cloud-arrow-down mr-2 text-blue-500"></i>${tr('docs.modal.load_latest.title')}</h3>
                 <button onclick="closeLoadConfigModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-times text-xl"></i></button>
             </div>
             <div class="text-sm text-gray-600 mb-4">
-                选择要从 GitHub 加载的配置文件：
+                ${tr('docs.modal.load_latest.select_files')}
             </div>
             <div class="space-y-3">
                 <label class="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:bg-blue-50 hover:border-blue-300 cursor-pointer transition-colors">
                     <input type="checkbox" id="load-config-yaml" checked class="w-4 h-4 text-blue-600 rounded">
                     <div class="flex-1">
                         <div class="font-medium text-gray-800">config.yaml</div>
-                        <div class="text-xs text-gray-500">系统配置、平台、AI、通知等</div>
+                        <div class="text-xs text-gray-500">${tr('docs.modal.load_latest.config_desc')}</div>
                     </div>
                     <i class="fa-solid fa-file-code text-blue-400"></i>
                 </label>
@@ -525,7 +537,7 @@ window.openLoadConfigModal = function() {
                     <input type="checkbox" id="load-frequency-txt" checked class="w-4 h-4 text-blue-600 rounded">
                     <div class="flex-1">
                         <div class="font-medium text-gray-800">frequency_words.txt</div>
-                        <div class="text-xs text-gray-500">关键词组、过滤规则、正则逻辑</div>
+                        <div class="text-xs text-gray-500">${tr('docs.modal.load_latest.frequency_desc')}</div>
                     </div>
                     <i class="fa-solid fa-filter text-orange-400"></i>
                 </label>
@@ -533,19 +545,19 @@ window.openLoadConfigModal = function() {
                     <input type="checkbox" id="load-timeline-yaml" checked class="w-4 h-4 text-blue-600 rounded">
                     <div class="flex-1">
                         <div class="font-medium text-gray-800">timeline.yaml</div>
-                        <div class="text-xs text-gray-500">调度时间线、预设模板、自定义时间段</div>
+                        <div class="text-xs text-gray-500">${tr('docs.modal.load_latest.timeline_desc')}</div>
                     </div>
                     <i class="fa-solid fa-calendar-week text-purple-400"></i>
                 </label>
             </div>
             <div class="text-xs text-gray-400 mt-3 p-2 bg-gray-50 rounded">
                 <i class="fa-solid fa-info-circle mr-1"></i>
-                数据来源：<a href="https://github.com/sansan0/TrendRadar" target="_blank" class="text-blue-500 hover:underline">sansan0/TrendRadar</a>
+                ${tr('docs.modal.load_latest.source_prefix')}<a href="https://github.com/sansan0/TrendRadar" target="_blank" class="text-blue-500 hover:underline">sansan0/TrendRadar</a>
             </div>
             <div class="flex justify-end gap-2 mt-4">
-                <button onclick="closeLoadConfigModal()" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">取消</button>
+                <button onclick="closeLoadConfigModal()" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">${tr('docs.action.cancel')}</button>
                 <button onclick="confirmLoadConfig()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                    <i class="fa-solid fa-download mr-1"></i>加载选中
+                    <i class="fa-solid fa-download mr-1"></i>${tr('docs.modal.load_latest.load_selected')}
                 </button>
             </div>
         </div>
@@ -564,12 +576,12 @@ window.confirmLoadConfig = async function() {
     const loadTimeline = document.getElementById('load-timeline-yaml')?.checked;
 
     if (!loadConfig && !loadFrequency && !loadTimeline) {
-        showToast('请至少选择一个文件', 'warning');
+        showToast(tr('docs.toast.select_at_least_one_file'), 'warning');
         return;
     }
 
     closeLoadConfigModal();
-    showToast('正在从 GitHub 加载...', 'info');
+    showToast(tr('docs.toast.loading_from_github'), 'info');
 
     try {
         const promises = [];
@@ -582,7 +594,7 @@ window.confirmLoadConfig = async function() {
         for (const { type, res } of results) {
             if (!res.ok) {
                 const names = { config: 'config.yaml', frequency: 'frequency_words.txt', timeline: 'timeline.yaml' };
-                throw new Error(`${names[type]} 加载失败: ${res.status}`);
+                throw new Error(tr('docs.error.load_file_failed', { file: names[type], status: res.status }));
             }
 
             const text = await res.text();
@@ -591,7 +603,7 @@ window.confirmLoadConfig = async function() {
                 try {
                     jsyaml.load(text);
                 } catch (yamlErr) {
-                    showToast(`YAML 语法错误: ${yamlErr.message}`, 'error');
+                    showToast(tr('docs.toast.yaml_error', { error: yamlErr.message }), 'error');
                     continue;
                 }
                 document.getElementById('yaml-editor').value = text;
@@ -602,7 +614,7 @@ window.confirmLoadConfig = async function() {
                 try {
                     jsyaml.load(text);
                 } catch (yamlErr) {
-                    showToast(`YAML 语法错误: ${yamlErr.message}`, 'error');
+                    showToast(tr('docs.toast.yaml_error', { error: yamlErr.message }), 'error');
                     continue;
                 }
                 document.getElementById('timeline-editor').value = text;
@@ -624,11 +636,11 @@ window.confirmLoadConfig = async function() {
         if (loadConfig) loadedFiles.push('config.yaml');
         if (loadFrequency) loadedFiles.push('frequency_words.txt');
         if (loadTimeline) loadedFiles.push('timeline.yaml');
-        showToast(`已加载: ${loadedFiles.join(', ')}`, 'success');
+        showToast(tr('docs.toast.loaded_files', { files: loadedFiles.join(', ') }), 'success');
 
     } catch (err) {
-        console.error('加载远程配置失败:', err);
-        showToast(`加载失败: ${err.message}`, 'error');
+        console.error('Failed to load remote config:', err);
+        showToast(tr('docs.error.load_failed', { error: err.message }), 'error');
     }
 }
 
@@ -686,11 +698,11 @@ function renderModules() {
         const header = `
             <div class="module-header px-4 py-3 flex items-center justify-between cursor-pointer" onclick="scrollToModuleInEditor('${mod.key}')">
                 <div class="flex items-center">
-                    <span class="text-sm font-bold">${mod.name}</span>
+                    <span class="text-sm font-bold">${tr(mod.nameKey)}</span>
                     <i class="fa-solid fa-arrow-up-right-from-square text-blue-400 text-[10px] ml-2 opacity-0 group-hover:opacity-100" title="跳转到左侧编辑器"></i>
                 </div>
                 ${!mod.editable ?
-                    '<span class="locked-badge text-[10px] text-gray-400 border border-gray-200 px-1.5 py-0.5 rounded">只读 (请在左侧编辑)</span>' :
+                    `<span class="locked-badge text-[10px] text-gray-400 border border-gray-200 px-1.5 py-0.5 rounded">${tr('docs.badge.read_only_edit_left')}</span>` :
                     '<i class="fa-solid fa-chevron-down text-gray-400 text-xs"></i>'}
             </div>
         `;
@@ -714,7 +726,7 @@ function renderModuleNav() {
     nav.innerHTML = MODULE_DEFS.map(mod => `
         <button onclick="scrollToModuleInEditor('${mod.key}')"
                 class="module-nav-btn text-[10px] px-2 py-1 rounded ${mod.editable ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'} transition-colors"
-                title="跳转到模块 ${mod.id}">
+                title="${tr('docs.action.jump_to_module', { id: mod.id })}">
             ${mod.id}
         </button>
     `).join('');
@@ -946,34 +958,34 @@ function renderControls(mod) {
         case "ai":
             html = createInputControl(mod.key, "model", "模型名称");
             html += createInputControl(mod.key, "api_key", "API Key", "password");
-            html += createInputControl(mod.key, "api_base", "API Base URL (可选)");
-            html += createNumberControl(mod.key, "timeout", "请求超时 (秒)");
-            html += createNumberControl(mod.key, "temperature", "采样温度 (0.0-2.0)");
-            html += createNumberControl(mod.key, "max_tokens", "最大生成 Token 数");
+            html += createInputControl(mod.key, "api_base", "API Base URL (optional)");
+            html += createNumberControl(mod.key, "timeout", "Request timeout (s)");
+            html += createNumberControl(mod.key, "temperature", "Temperature (0.0-2.0)");
+            html += createNumberControl(mod.key, "max_tokens", "Max generated tokens");
             break;
         case "ai_analysis":
-            html = createToggleControl(mod.key, "enabled", "开启 AI 分析报告");
+            html = createToggleControl(mod.key, "enabled", "Enable AI analysis report");
 
             // 提示：分析时间窗口已迁移到 timeline.yaml
             html += `<div class="text-xs text-gray-500 mt-3 mb-3 p-2 bg-blue-50 rounded border border-blue-200">
                         <i class="fa-solid fa-info-circle mr-1 text-blue-500"></i>
-                        AI 分析的执行时间已由 <strong>timeline.yaml</strong> 统一控制。
+                        AI analysis schedule is unified in <strong>timeline.yaml</strong>.
                     </div>`;
 
-            // 其他 AI 分析配置
-            html += `<div class="text-xs font-bold text-blue-600 mb-2">分析内容配置</div>`;
-            html += createInputControl(mod.key, "language", "输出语言");
-            html += createInputControl(mod.key, "prompt_file", "提示词配置文件");
-            html += createSelectControl(mod.key, "mode", "AI 分析模式", ["follow_report", "daily", "current", "incremental"]);
-            html += createNumberControl(mod.key, "max_news_for_analysis", "最大分析条数");
-            html += createToggleControl(mod.key, "include_rss", "包含 RSS 内容");
-            html += createToggleControl(mod.key, "include_standalone", "包含独立展示区数据");
-            html += createToggleControl(mod.key, "include_rank_timeline", "传递完整排名时间线");
+            // Other AI analysis settings
+            html += `<div class="text-xs font-bold text-blue-600 mb-2">Analysis content settings</div>`;
+            html += createInputControl(mod.key, "language", "Output language");
+            html += createInputControl(mod.key, "prompt_file", "Prompt file");
+            html += createSelectControl(mod.key, "mode", "AI analysis mode", ["follow_report", "daily", "current", "incremental"]);
+            html += createNumberControl(mod.key, "max_news_for_analysis", "Max news items for analysis");
+            html += createToggleControl(mod.key, "include_rss", "Include RSS content");
+            html += createToggleControl(mod.key, "include_standalone", "Include standalone section data");
+            html += createToggleControl(mod.key, "include_rank_timeline", "Include full ranking timeline");
             break;
         case "ai_translation":
-            html = createToggleControl(mod.key, "enabled", "开启 AI 自动翻译");
-            html += createInputControl(mod.key, "language", "目标语言");
-            html += createInputControl(mod.key, "prompt_file", "提示词配置文件");
+            html = createToggleControl(mod.key, "enabled", "Enable AI auto translation");
+            html += createInputControl(mod.key, "language", "Target language");
+            html += createInputControl(mod.key, "prompt_file", "Prompt file");
             break;
     }
 
@@ -1177,7 +1189,7 @@ function createInputControl(mod, path, label, type = "text") {
     return `
         <div>
             <label class="block text-[10px] uppercase tracking-wider font-bold text-gray-400 mb-1">${label}</label>
-            <input type="${type}" data-path="${path}" class="bg-white border-gray-300 focus:border-blue-500" placeholder="未设置">
+            <input type="${type}" data-path="${path}" class="bg-white border-gray-300 focus:border-blue-500" placeholder="${tr('docs.input.unset')}">
         </div>
     `;
 }
@@ -1219,24 +1231,24 @@ window.copyResult = function() {
 
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(text).then(() => {
-            btn.innerHTML = '<i class="fa-solid fa-check mr-1.5"></i>已复制!';
+            btn.innerHTML = `<i class="fa-solid fa-check mr-1.5"></i>${tr('docs.action.copied')}`;
             setTimeout(() => btn.innerHTML = original, 2000);
         }).catch(() => {
             editor.select();
             document.execCommand('copy');
-            btn.innerHTML = '<i class="fa-solid fa-check mr-1.5"></i>已复制!';
+            btn.innerHTML = `<i class="fa-solid fa-check mr-1.5"></i>${tr('docs.action.copied')}`;
             setTimeout(() => btn.innerHTML = original, 2000);
         });
     } else {
         editor.select();
         document.execCommand('copy');
-        btn.innerHTML = '<i class="fa-solid fa-check mr-1.5"></i>已复制!';
+        btn.innerHTML = `<i class="fa-solid fa-check mr-1.5"></i>${tr('docs.action.copied')}`;
         setTimeout(() => btn.innerHTML = original, 2000);
     }
 }
 
 window.resetToDefault = function() {
-    if (confirm('确定要重置为初始状态吗？未保存的修改将丢失。')) {
+    if (confirm(tr('docs.confirm.reset_default'))) {
         if (currentTab === 'config') {
             const yamlEditor = document.getElementById('yaml-editor');
             yamlEditor.value = INITIAL_YAML;
@@ -1249,7 +1261,7 @@ window.resetToDefault = function() {
             updateSaveTimeDisplay();
         } else if (currentTab === 'timeline') {
             const timelineEditor = document.getElementById('timeline-editor');
-            const initialTimeline = `# 在此粘贴你的 timeline.yaml...\n# 或拖拽文件到编辑器区域\n# 或点击右上角"加载官网最新配置"`;
+            const initialTimeline = getInitialTimelineText();
             timelineEditor.value = initialTimeline;
             currentTimeline = initialTimeline;
             updateBackdrop('timeline-editor', 'timeline-backdrop');
@@ -1259,7 +1271,7 @@ window.resetToDefault = function() {
             updateSaveTimeDisplay();
         } else {
             const frequencyEditor = document.getElementById('frequency-editor');
-            frequencyEditor.value = "# 在此粘贴你的 frequency_words.txt 内容...\n\n[GLOBAL_FILTER]\n\n[WORD_GROUPS]\n";
+            frequencyEditor.value = getInitialFrequencyText();
             currentFrequency = frequencyEditor.value;
             updateBackdrop('frequency-editor', 'frequency-backdrop');
             localStorage.removeItem(STORAGE_KEY_FREQUENCY);
@@ -1267,7 +1279,7 @@ window.resetToDefault = function() {
             syncFrequencyToUI();
             updateSaveTimeDisplay();
         }
-        showToast('已重置为初始状态', 'success');
+        showToast(tr('docs.toast.reset_done'), 'success');
     }
 }
 
@@ -1316,13 +1328,13 @@ window.switchTab = function(tab) {
     // 更新右侧标题
     const versionBtn = document.getElementById('version-check-btn');
     if (tab === 'config') {
-        document.getElementById('right-panel-title').textContent = '配置模块';
-        if (versionBtn) { versionBtn.style.display = ''; versionBtn.title = "检测 config.yaml 版本"; }
+        document.getElementById('right-panel-title').textContent = tr('docs.panel.config_modules');
+        if (versionBtn) { versionBtn.style.display = ''; versionBtn.title = tr('docs.action.check_version_config'); }
     } else if (tab === 'frequency') {
-        document.getElementById('right-panel-title').textContent = '频率词编辑';
-        if (versionBtn) { versionBtn.style.display = ''; versionBtn.title = "检测 frequency_words.txt 版本"; }
+        document.getElementById('right-panel-title').textContent = tr('docs.panel.frequency_editor');
+        if (versionBtn) { versionBtn.style.display = ''; versionBtn.title = tr('docs.action.check_version_frequency'); }
     } else {
-        document.getElementById('right-panel-title').textContent = '时间线调度';
+        document.getElementById('right-panel-title').textContent = tr('docs.panel.timeline_scheduler');
         if (versionBtn) versionBtn.style.display = 'none';
     }
 
@@ -1834,7 +1846,7 @@ function renderFrequencyPanel(data) {
                                 <i class="fa-solid fa-wand-magic-sparkles"></i>AI 写正则
                             </button>
                             <div class="text-[10px] text-gray-500">
-                                <i class="fa-solid fa-info-circle mr-1"></i>这些别名行在配置文件中无空行分隔，属于同一组
+                                <i class="fa-solid fa-info-circle mr-1"></i>Alias lines without blank lines are treated as one group
                             </div>
                         </div>
                     </div>
@@ -2403,7 +2415,7 @@ function renderPlatformsList() {
     const platforms = parsePlatformsFromYaml();
 
     if (platforms.length === 0) {
-        container.innerHTML = `<div class="text-xs text-gray-400 italic">暂无平台，请添加</div>`;
+        container.innerHTML = `<div class="text-xs text-gray-400 italic">${tr('docs.platform.none')}</div>`;
         return;
     }
 
@@ -2414,7 +2426,7 @@ function renderPlatformsList() {
                 <span class="text-xs font-medium text-gray-700">${p.name}</span>
                 <span class="text-[10px] text-gray-400">(${p.id})</span>
             </div>
-            <button onclick="removePlatform(${idx})" class="text-red-400 hover:text-red-600 text-xs" title="删除">
+            <button onclick="removePlatform(${idx})" class="text-red-400 hover:text-red-600 text-xs" title="${tr('docs.action.delete')}">
                 <i class="fa-solid fa-trash"></i>
             </button>
         </div>
@@ -2438,7 +2450,7 @@ window.removePlatform = function(index) {
     if (index < 0 || index >= platforms.length) return;
 
     const platformName = platforms[index].name;
-    if (!confirm(`确定要删除平台 "${platformName}" 吗？`)) return;
+    if (!confirm(tr('docs.confirm.delete_platform', { name: platformName }))) return;
 
     platforms.splice(index, 1);
     updatePlatformsInYaml(platforms);
@@ -2849,7 +2861,7 @@ function renderRssFeedsList() {
                     <button onclick="toggleRssFeed(${idx})" class="text-gray-400 hover:text-gray-600 text-xs px-1" title="${f.enabled === false ? '启用' : '禁用'}">
                         <i class="fa-solid fa-${f.enabled === false ? 'eye' : 'eye-slash'}"></i>
                     </button>
-                    <button onclick="removeRssFeed(${idx})" class="text-red-400 hover:text-red-600 text-xs px-1" title="删除">
+                    <button onclick="removeRssFeed(${idx})" class="text-red-400 hover:text-red-600 text-xs px-1" title="${tr('docs.action.delete')}">
                         <i class="fa-solid fa-trash"></i>
                     </button>
                 </div>
@@ -3241,13 +3253,13 @@ window.checkVersion = async function() {
     const btn = document.getElementById('version-check-btn');
     const originalHTML = btn.innerHTML;
 
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>检测中...</span>';
+    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>${tr('docs.version.checking')}</span>`;
     btn.disabled = true;
 
     try {
         const versionRes = await fetch(REMOTE_VERSION_URL);
         if (!versionRes.ok) {
-            throw new Error(`版本信息获取失败: ${versionRes.status}`);
+            throw new Error(tr('docs.version.error.fetch_failed', { status: versionRes.status }));
         }
 
         const versionConfigText = await versionRes.text();
@@ -3274,14 +3286,14 @@ window.checkVersion = async function() {
         const latestVersion = versionMap[fileName];
 
         if (!latestVersion) {
-             throw new Error(`未在远程版本清单中找到 ${fileName}`);
+             throw new Error(tr('docs.version.error.file_not_found', { file: fileName }));
         }
 
         showVersionComparisonModal(fileName, currentVersion, latestVersion);
 
     } catch (err) {
-        console.error('版本检测失败:', err);
-        showToast(`版本检测失败: ${err.message}`, 'error');
+        console.error(tr('docs.version.error.check_failed_log'), err);
+        showToast(tr('docs.version.error.check_failed', { error: err.message }), 'error');
     } finally {
         btn.innerHTML = originalHTML;
         btn.disabled = false;
@@ -3306,37 +3318,37 @@ function showVersionComparisonModal(fileName, currentVersion, latestVersion) {
 
     if (!currentVersion) {
         statusIcon = '<i class="fa-solid fa-question-circle text-gray-500 text-3xl"></i>';
-        statusText = '未检测到版本信息';
+        statusText = tr('docs.version.status.no_version');
         statusColor = 'text-gray-600';
         actionButtons = `
-            <button onclick="closeVersionModal()" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">关闭</button>
+            <button onclick="closeVersionModal()" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">${tr('docs.action.close')}</button>
             <button onclick="updateToLatest()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                <i class="fa-solid fa-download mr-1"></i>更新到最新版本
+                <i class="fa-solid fa-download mr-1"></i>${tr('docs.version.action.update_latest')}
             </button>
         `;
     } else if (comparison < 0) {
         statusIcon = '<i class="fa-solid fa-arrow-up text-orange-500 text-3xl"></i>';
-        statusText = '发现新版本';
+        statusText = tr('docs.version.status.new_available');
         statusColor = 'text-orange-600';
         actionButtons = `
-            <button onclick="closeVersionModal()" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">稍后更新</button>
+            <button onclick="closeVersionModal()" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">${tr('docs.version.action.later')}</button>
             <button onclick="updateToLatest()" class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700">
-                <i class="fa-solid fa-download mr-1"></i>立即更新
+                <i class="fa-solid fa-download mr-1"></i>${tr('docs.version.action.update_now')}
             </button>
         `;
     } else if (comparison > 0) {
         statusIcon = '<i class="fa-solid fa-flask text-purple-500 text-3xl"></i>';
-        statusText = '当前版本较新（开发版本？）';
+        statusText = tr('docs.version.status.current_newer');
         statusColor = 'text-purple-600';
         actionButtons = `
-            <button onclick="closeVersionModal()" class="px-4 py-2 bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-lg">关闭</button>
+            <button onclick="closeVersionModal()" class="px-4 py-2 bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-lg">${tr('docs.action.close')}</button>
         `;
     } else {
         statusIcon = '<i class="fa-solid fa-check-circle text-green-500 text-3xl"></i>';
-        statusText = '已是最新版本';
+        statusText = tr('docs.version.status.latest');
         statusColor = 'text-green-600';
         actionButtons = `
-            <button onclick="closeVersionModal()" class="px-4 py-2 bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-lg">关闭</button>
+            <button onclick="closeVersionModal()" class="px-4 py-2 bg-gray-100 text-gray-600 hover:bg-gray-200 rounded-lg">${tr('docs.action.close')}</button>
         `;
     }
 
@@ -3347,7 +3359,7 @@ function showVersionComparisonModal(fileName, currentVersion, latestVersion) {
         <div class="modal-content" style="max-width: 480px;">
             <div class="flex items-center justify-between mb-4">
                 <h3 class="text-lg font-bold text-gray-800">
-                    <i class="fa-solid fa-code-compare mr-2 text-blue-500"></i>版本检测结果
+                    <i class="fa-solid fa-code-compare mr-2 text-blue-500"></i>${tr('docs.version.modal.title')}
                 </h3>
                 <button onclick="closeVersionModal()" class="text-gray-400 hover:text-gray-600">
                     <i class="fa-solid fa-times text-xl"></i>
@@ -3361,18 +3373,18 @@ function showVersionComparisonModal(fileName, currentVersion, latestVersion) {
 
             <div class="bg-gray-50 rounded-lg p-4 space-y-3 mb-4">
                 <div class="flex items-center justify-between text-sm">
-                    <span class="text-gray-600">配置文件</span>
+                    <span class="text-gray-600">${tr('docs.version.label.file')}</span>
                     <span class="font-mono font-bold text-gray-800">${fileName}</span>
                 </div>
                 <div class="border-t border-gray-200"></div>
                 <div class="flex items-center justify-between text-sm">
-                    <span class="text-gray-600">当前版本</span>
+                    <span class="text-gray-600">${tr('docs.version.label.current')}</span>
                     <span class="font-mono font-bold ${currentVersion ? 'text-blue-600' : 'text-gray-400'}">
-                        ${currentVersion ? 'v' + currentVersion : '未知'}
+                        ${currentVersion ? 'v' + currentVersion : tr('docs.version.label.unknown')}
                     </span>
                 </div>
                 <div class="flex items-center justify-between text-sm">
-                    <span class="text-gray-600">最新版本</span>
+                    <span class="text-gray-600">${tr('docs.version.label.latest')}</span>
                     <span class="font-mono font-bold text-green-600">v${latestVersion}</span>
                 </div>
             </div>
@@ -3380,7 +3392,7 @@ function showVersionComparisonModal(fileName, currentVersion, latestVersion) {
             ${comparison < 0 || !currentVersion ? `
                 <div class="text-xs text-gray-500 bg-yellow-50 border border-yellow-200 rounded p-3 mb-4">
                     <i class="fa-solid fa-lightbulb mr-1 text-yellow-600"></i>
-                    <strong>提示：</strong>更新将从 GitHub 加载最新的 ${fileName}，你当前的修改将被覆盖。建议先复制保存你的自定义配置。
+                    <strong>${tr('docs.version.tip.title')}</strong>${tr('docs.version.tip.update_overwrite', { file: fileName })}
                 </div>
             ` : ''}
 
@@ -3543,21 +3555,21 @@ window.confirmAddPlatform = function(key, name) {
         if (nameInput) platformName = nameInput.value.trim();
 
         if (!platformKey) {
-            alert('请输入平台 Key');
+            alert(tr('docs.alert.input_platform_key'));
             return;
         }
         if (!platformName) {
             platformName = platformKey;
         }
     } else if (currentPlatformTab === 'select' && !key) {
-        alert('请直接点击上方列表中的平台进行添加');
+        alert(tr('docs.alert.select_platform_from_list'));
         return;
     }
 
     // 检查是否已存在
     const currentPlatforms = parsePlatformsFromYaml();
     if (currentPlatforms.find(p => p.id === platformKey)) {
-        alert(`平台 ${platformKey} 已存在！`);
+        alert(tr('docs.alert.platform_exists', { key: platformKey }));
         return;
     }
 
@@ -3581,7 +3593,7 @@ window.confirmAddPlatform = function(key, name) {
 
     renderPlatformsList();
 
-    showToast(`平台 ${platformName} 已添加`, 'success');
+    showToast(tr('docs.toast.platform_added', { name: platformName }), 'success');
 }
 
 // 绑定到全局
@@ -3591,18 +3603,18 @@ window.updateToLatest = async function() {
     const currentTab = getCurrentTab();
     const fileName = currentTab === 'config' ? 'config.yaml' : 'frequency_words.txt';
 
-    if (!confirm(`确定要从 GitHub 更新 ${fileName} 到最新版本吗？\n\n你当前的自定义配置将被覆盖，建议先复制保存。`)) {
+    if (!confirm(tr('docs.confirm.update_latest', { file: fileName }))) {
         return;
     }
 
-    showToast('正在从 GitHub 加载最新版本...', 'info');
+    showToast(tr('docs.toast.loading_latest_from_github'), 'info');
 
     try {
         const url = currentTab === 'config' ? REMOTE_CONFIG_URL : REMOTE_FREQUENCY_URL;
         const res = await fetch(url);
 
         if (!res.ok) {
-            throw new Error(`加载失败: ${res.status}`);
+            throw new Error(tr('docs.error.load_status', { status: res.status }));
         }
 
         const text = await res.text();
@@ -3611,7 +3623,7 @@ window.updateToLatest = async function() {
             try {
                 jsyaml.load(text);
             } catch (yamlErr) {
-                showToast(`YAML 语法错误: ${yamlErr.message}`, 'error');
+                showToast(tr('docs.toast.yaml_error', { error: yamlErr.message }), 'error');
                 return;
             }
             document.getElementById('yaml-editor').value = text;
@@ -3625,11 +3637,11 @@ window.updateToLatest = async function() {
 
         saveToLocalStorage();
 
-        showToast(`已更新到最新版本`, 'success');
+        showToast(tr('docs.toast.updated_to_latest'), 'success');
 
     } catch (err) {
-        console.error('更新失败:', err);
-        showToast(`更新失败: ${err.message}`, 'error');
+        console.error('Update failed:', err);
+        showToast(tr('docs.error.update_failed', { error: err.message }), 'error');
     }
 }
 
@@ -3672,7 +3684,15 @@ const PRESET_META = {
     custom:          { icon: 'fa-sliders', color: 'text-purple-500', bg: 'bg-purple-50' }
 };
 
-const DAY_NAMES = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+const DAY_NAMES = [
+    tr('docs.day.monday'),
+    tr('docs.day.tuesday'),
+    tr('docs.day.wednesday'),
+    tr('docs.day.thursday'),
+    tr('docs.day.friday'),
+    tr('docs.day.saturday'),
+    tr('docs.day.sunday')
+];
 
 /**
  * 从当前 config.yaml 中读取 schedule.preset
@@ -3718,8 +3738,8 @@ function syncTimelineToUI() {
         panel.innerHTML = `
             <div class="text-center py-12 text-gray-400">
                 <i class="fa-solid fa-calendar-xmark text-4xl mb-3"></i>
-                <p class="text-sm">请在左侧粘贴 timeline.yaml 内容</p>
-                <p class="text-xs mt-1">或点击右上角「加载官网最新配置」</p>
+                <p class="text-sm">${tr('docs.timeline.empty.paste_left')}</p>
+                <p class="text-xs mt-1">${tr('docs.timeline.empty.load_latest')}</p>
             </div>`;
         return;
     }
@@ -3728,7 +3748,7 @@ function syncTimelineToUI() {
 
     // ── Layer 1: 预设模式选择卡片 ──
     html += `<div class="mb-6">
-        <div class="tl-section-title"><i class="fa-solid fa-swatchbook"></i>调度模式</div>
+        <div class="tl-section-title"><i class="fa-solid fa-swatchbook"></i>${tr('docs.timeline.section.schedule_mode')}</div>
         <div class="grid grid-cols-2 gap-3" id="tl-preset-grid">`;
 
     // 收集所有预设名
@@ -3745,7 +3765,7 @@ function syncTimelineToUI() {
         const isProtected = ['morning_evening', 'always_on', 'office_hours', 'night_owl', 'custom'].includes(name);
         html += `
             <div class="tl-preset-card ${isActive ? 'selected' : ''}" data-preset="${name}">
-                ${meta.recommend ? '<div class="tl-recommend-badge">推荐</div>' : ''}
+                ${meta.recommend ? `<div class="tl-recommend-badge">${tr('docs.badge.recommended')}</div>` : ''}
                 <div class="flex items-center gap-3 cursor-pointer" onclick="selectTimelinePreset('${name}')">
                     <div class="tl-card-icon ${meta.bg} ${meta.color}"><i class="fa-solid ${meta.icon}"></i></div>
                     <div class="flex-1 min-w-0">
@@ -3754,10 +3774,10 @@ function syncTimelineToUI() {
                     </div>
                 </div>
                 <div class="tl-card-actions">
-                    <button onclick="event.stopPropagation();duplicateTlPreset('${name}')" class="tl-card-action-btn" title="复制"><i class="fa-regular fa-copy"></i></button>
-                    ${!isProtected ? `<button onclick="event.stopPropagation();deleteTlPreset('${name}')" class="tl-card-action-btn text-red-400 hover:text-red-600" title="删除"><i class="fa-regular fa-trash-can"></i></button>` : ''}
+                    <button onclick="event.stopPropagation();duplicateTlPreset('${name}')" class="tl-card-action-btn" title="${tr('docs.action.duplicate')}"><i class="fa-regular fa-copy"></i></button>
+                    ${!isProtected ? `<button onclick="event.stopPropagation();deleteTlPreset('${name}')" class="tl-card-action-btn text-red-400 hover:text-red-600" title="${tr('docs.action.delete')}"><i class="fa-regular fa-trash-can"></i></button>` : ''}
                 </div>
-                ${isActive ? '<div class="absolute bottom-1 right-2 text-[9px] text-blue-500 font-bold"><i class="fa-solid fa-check-circle mr-0.5"></i>当前</div>' : ''}
+                ${isActive ? `<div class="absolute bottom-1 right-2 text-[9px] text-blue-500 font-bold"><i class="fa-solid fa-check-circle mr-0.5"></i>${tr('docs.timeline.status.current')}</div>` : ''}
             </div>`;
     });
 
@@ -3767,8 +3787,8 @@ function syncTimelineToUI() {
             <div class="flex items-center gap-3">
                 <div class="tl-card-icon bg-gray-50 text-gray-400"><i class="fa-solid fa-plus"></i></div>
                 <div>
-                    <div class="text-sm font-bold text-gray-500">新建模式</div>
-                    <div class="text-[10px] text-gray-400">创建自定义调度方案</div>
+                    <div class="text-sm font-bold text-gray-500">New mode</div>
+                    <div class="text-[10px] text-gray-400">Create a custom schedule</div>
                 </div>
             </div>
         </div>`;
@@ -3781,7 +3801,7 @@ function syncTimelineToUI() {
     if (!config) {
         html += `<div class="text-center py-6 text-gray-400 text-sm">
             <i class="fa-solid fa-triangle-exclamation text-amber-400 mr-1"></i>
-            未找到预设「${activePreset}」的配置
+            Preset "${activePreset}" configuration not found
         </div>`;
         panel.innerHTML = html;
         return;
@@ -3809,7 +3829,7 @@ function renderWeekView(config, presetName) {
 
     // 时间刻度
     let html = `<div class="tl-week-view">
-        <div class="tl-section-title mb-2"><i class="fa-solid fa-calendar-week"></i>周视图</div>
+        <div class="tl-section-title mb-2"><i class="fa-solid fa-calendar-week"></i>${tr('docs.timeline.section.week_view')}</div>
         <div class="tl-hour-markers">
             <div style="width:2.5rem;flex-shrink:0"></div>
             <div style="flex:1;display:flex;min-width:480px">`;
@@ -3863,7 +3883,7 @@ function renderWeekView(config, presetName) {
             const nowTime = new Date();
             const nowH = nowTime.getHours() + nowTime.getMinutes() / 60;
             const nowLeftPct = (nowH / 24 * 100).toFixed(2);
-            html += `<div class="tl-now-line" style="left:${nowLeftPct}%" title="当前时间 ${String(nowTime.getHours()).padStart(2,'0')}:${String(nowTime.getMinutes()).padStart(2,'0')}"></div>`;
+            html += `<div class="tl-now-line" style="left:${nowLeftPct}%" title="${tr('docs.timeline.tooltip.current_time', { time: `${String(nowTime.getHours()).padStart(2,'0')}:${String(nowTime.getMinutes()).padStart(2,'0')}` })}"></div>`;
         }
 
         html += `</div></div>`;
@@ -3871,11 +3891,11 @@ function renderWeekView(config, presetName) {
 
     // 图例
     html += `<div class="tl-legend">
-        <div class="tl-legend-item"><div class="tl-legend-color tl-block-push"></div>推送</div>
-        <div class="tl-legend-item"><div class="tl-legend-color tl-block-analyze"></div>AI 分析</div>
-        <div class="tl-legend-item"><div class="tl-legend-color tl-block-push-analyze"></div>推送 + 分析</div>
-        <div class="tl-legend-item"><div class="tl-legend-color tl-block-collect"></div>仅采集</div>
-        <div class="tl-legend-item"><div class="tl-legend-color" style="background:#f1f5f9;border:1px solid #e2e8f0"></div>默认 (default)</div>
+        <div class="tl-legend-item"><div class="tl-legend-color tl-block-push"></div>${tr('docs.timeline.legend.push')}</div>
+        <div class="tl-legend-item"><div class="tl-legend-color tl-block-analyze"></div>${tr('docs.timeline.legend.analyze')}</div>
+        <div class="tl-legend-item"><div class="tl-legend-color tl-block-push-analyze"></div>${tr('docs.timeline.legend.push_analyze')}</div>
+        <div class="tl-legend-item"><div class="tl-legend-color tl-block-collect"></div>${tr('docs.timeline.legend.collect_only')}</div>
+        <div class="tl-legend-item"><div class="tl-legend-color" style="background:#f1f5f9;border:1px solid #e2e8f0"></div>${tr('docs.timeline.legend.default')}</div>
     </div>`;
 
     html += `</div>`;
@@ -3939,14 +3959,14 @@ function showTlTooltip(event, name, start, end, push, analyze, mode) {
     const el = document.createElement('div');
     el.className = 'tl-tooltip';
     let features = [];
-    if (push) features.push('<span style="color:#93c5fd">推送</span>');
-    if (analyze) features.push('<span style="color:#c4b5fd">分析</span>');
-    if (!push && !analyze) features.push('<span style="color:#94a3b8">仅采集</span>');
+    if (push) features.push(`<span style="color:#93c5fd">${tr('docs.timeline.legend.push')}</span>`);
+    if (analyze) features.push(`<span style="color:#c4b5fd">${tr('docs.timeline.legend.analyze')}</span>`);
+    if (!push && !analyze) features.push(`<span style="color:#94a3b8">${tr('docs.timeline.legend.collect_only')}</span>`);
 
     el.innerHTML = `<div style="font-weight:700;margin-bottom:2px">${name}</div>
         <div style="font-size:11px;color:#9ca3af">${start} - ${end}</div>
         <div style="margin-top:4px">${features.join(' / ')}</div>
-        ${mode ? `<div style="font-size:10px;color:#9ca3af;margin-top:2px">模式: ${mode}</div>` : ''}`;
+        ${mode ? `<div style="font-size:10px;color:#9ca3af;margin-top:2px">${tr('docs.timeline.label.mode')}: ${mode}</div>` : ''}`;
 
     document.body.appendChild(el);
     tlTooltipEl = el;
@@ -4000,8 +4020,8 @@ function renderPeriodDetails(config, presetName) {
     const periodEntries = Object.entries(periods);
     html += `<div class="mt-6">
         <div class="tl-section-title flex items-center justify-between">
-            <span><i class="fa-solid fa-puzzle-piece"></i>时间段 (Periods)</span>
-            <button onclick="openTlNewPeriodModal('${presetName}')" class="tl-add-btn"><i class="fa-solid fa-plus mr-1"></i>新增</button>
+            <span><i class="fa-solid fa-puzzle-piece"></i>${tr('docs.timeline.section.periods')}</span>
+            <button onclick="openTlNewPeriodModal('${presetName}')" class="tl-add-btn"><i class="fa-solid fa-plus mr-1"></i>${tr('docs.action.add')}</button>
         </div>`;
 
     if (periodEntries.length > 0) {
@@ -4018,8 +4038,8 @@ function renderPeriodDetails(config, presetName) {
                     </div>
                     <div class="flex items-center gap-2">
                         <span class="text-xs text-gray-500 font-mono">${p.start || '?'} - ${p.end || '?'}</span>
-                        <button onclick="duplicateTlPeriod('${presetName}','${key}')" class="tl-inline-btn" title="复制"><i class="fa-regular fa-copy"></i></button>
-                        <button onclick="deleteTlPeriod('${presetName}','${key}')" class="tl-inline-btn text-red-400 hover:text-red-600" title="删除"><i class="fa-regular fa-trash-can"></i></button>
+                        <button onclick="duplicateTlPeriod('${presetName}','${key}')" class="tl-inline-btn" title="${tr('docs.action.duplicate')}"><i class="fa-regular fa-copy"></i></button>
+                        <button onclick="deleteTlPeriod('${presetName}','${key}')" class="tl-inline-btn text-red-400 hover:text-red-600" title="${tr('docs.action.delete')}"><i class="fa-regular fa-trash-can"></i></button>
                     </div>
                 </div>
                 ${renderBehaviorToggles(merged, presetName, key, p)}
@@ -4028,7 +4048,7 @@ function renderPeriodDetails(config, presetName) {
         html += `</div>`;
     } else {
         html += `<div class="text-xs text-gray-400 text-center py-4">
-            <i class="fa-solid fa-info-circle mr-1"></i>此模式无自定义时间段，全天使用 default 配置
+            <i class="fa-solid fa-info-circle mr-1"></i>No custom periods in this mode; default config is used all day
         </div>`;
     }
 
@@ -4038,8 +4058,8 @@ function renderPeriodDetails(config, presetName) {
     const dayPlanEntries = Object.entries(dayPlans);
     html += `<div class="mt-6">
         <div class="tl-section-title flex items-center justify-between">
-            <span><i class="fa-solid fa-list-ol"></i>日计划 (Day Plans)</span>
-            <button onclick="addTlDayPlan('${presetName}')" class="tl-add-btn"><i class="fa-solid fa-plus mr-1"></i>新增</button>
+            <span><i class="fa-solid fa-list-ol"></i>${tr('docs.timeline.section.day_plans')}</span>
+            <button onclick="addTlDayPlan('${presetName}')" class="tl-add-btn"><i class="fa-solid fa-plus mr-1"></i>${tr('docs.action.add')}</button>
         </div>`;
 
     if (dayPlanEntries.length > 0) {
@@ -4051,7 +4071,7 @@ function renderPeriodDetails(config, presetName) {
             html += `<div class="bg-white border border-gray-200 rounded-lg px-3 py-2 tl-dayplan-card">
                 <div class="flex items-center justify-between mb-1">
                     <span class="text-xs font-bold text-gray-700">${name}</span>
-                    <button onclick="deleteTlDayPlan('${presetName}','${name}')" class="tl-inline-btn text-red-400 hover:text-red-600" title="删除日计划"><i class="fa-regular fa-trash-can"></i></button>
+                    <button onclick="deleteTlDayPlan('${presetName}','${name}')" class="tl-inline-btn text-red-400 hover:text-red-600" title="${tr('docs.timeline.action.delete_day_plan')}"><i class="fa-regular fa-trash-can"></i></button>
                 </div>
                 <div class="flex flex-wrap gap-1 items-center tl-dayplan-sortable" data-plan-key="${name}">
                     ${pList.length > 0 ? pList.map(pn => {
@@ -4060,12 +4080,12 @@ function renderPeriodDetails(config, presetName) {
                         const cc = getBlockColorClass(merged);
                         return `<span class="tl-period-tag ${cc}" data-period-key="${pn}">
                             ${p?.name || pn}
-                            <button onclick="removePeriodFromDayPlanUI('${presetName}','${name}','${pn}')" class="tl-tag-remove" title="移除">&times;</button>
+                            <button onclick="removePeriodFromDayPlanUI('${presetName}','${name}','${pn}')" class="tl-tag-remove" title="${tr('docs.action.remove')}">&times;</button>
                         </span>`;
-                    }).join('') : '<span class="text-[10px] text-gray-400">空 (全天走 default)</span>'}
+                    }).join('') : `<span class="text-[10px] text-gray-400">${tr('docs.timeline.empty.day_plan_uses_default')}</span>`}
                     ${availablePeriods.length > 0 ? `
                         <select class="tl-add-period-select" onchange="if(this.value){addPeriodToDayPlan('${presetName}','${name}',this.value);this.value=''}">
-                            <option value="">+ 添加</option>
+                            <option value="">+ ${tr('docs.action.add')}</option>
                             ${availablePeriods.map(([k, p]) => `<option value="${k}">${p.name || k}</option>`).join('')}
                         </select>
                     ` : ''}
@@ -4086,7 +4106,7 @@ function renderPeriodDetails(config, presetName) {
     dayPlanKeys.forEach((k, idx) => { planColorMap[k] = planColors[idx % planColors.length]; });
 
     html += `<div class="mt-6">
-        <div class="tl-section-title"><i class="fa-solid fa-calendar-days"></i>周映射 (Week Map)</div>
+        <div class="tl-section-title"><i class="fa-solid fa-calendar-days"></i>${tr('docs.timeline.section.week_map')}</div>
         <div class="bg-white border border-gray-200 rounded-lg px-3 py-2 space-y-1">`;
 
     for (let d = 1; d <= 7; d++) {
@@ -4143,7 +4163,7 @@ function renderPeriodDetails(config, presetName) {
     } else {
         html += `<div class="mt-4 text-xs text-gray-400 p-3 bg-purple-50 rounded-lg border border-purple-200">
             <i class="fa-solid fa-pen-ruler mr-1 text-purple-400"></i>
-            自定义模式支持完全自由编辑。可直接在上方调整控件，或在左侧编辑 YAML 文本，两边实时同步。
+            Custom mode supports fully flexible editing. You can adjust controls above or edit YAML on the left; both stay in sync in real time.
         </div>`;
     }
 
@@ -4157,9 +4177,9 @@ function renderPeriodDetails(config, presetName) {
  */
 function renderBehaviorToggles(cfg, presetName, periodKey, rawCfg = null) {
     const toggleItems = [
-        { k: 'collect', label: '采集', icon: 'fa-download' },
-        { k: 'analyze', label: '分析', icon: 'fa-brain' },
-        { k: 'push', label: '推送', icon: 'fa-bell' },
+        { k: 'collect', label: 'Collect', icon: 'fa-download' },
+        { k: 'analyze', label: 'Analyze', icon: 'fa-brain' },
+        { k: 'push', label: 'Push', icon: 'fa-bell' },
     ];
 
     const uid = `tl-${presetName}-${periodKey}`;
@@ -4238,29 +4258,29 @@ function renderBehaviorToggles(cfg, presetName, periodKey, rawCfg = null) {
     const filterMethod = baseCfg.filter_method || '';
     const frequencyFile = baseCfg.frequency_file || '';
     const interestsFile = baseCfg.interests_file || '';
-    const methodHint = periodKey === 'default' ? '不填则跟随全局 filter.method' : '不填则继承 default（再回退全局）';
+    const methodHint = periodKey === 'default' ? tr('docs.timeline.hint.filter_method_default') : tr('docs.timeline.hint.filter_method_inherit');
 
     html += `<div class="mt-3 pt-3 border-t border-gray-100">
-        <div class="text-[10px] uppercase tracking-wider font-bold text-gray-400 mb-2">筛选覆盖（可选）</div>
+        <div class="text-[10px] uppercase tracking-wider font-bold text-gray-400 mb-2">${tr('docs.timeline.section.filter_override_optional')}</div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
             <div>
                 <label class="block text-[10px] text-gray-400 mb-1">filter_method</label>
                 <select class="text-[10px] w-full border border-gray-200 rounded px-1.5 py-1 bg-white"
                         onchange="onTlOptionalSelect('${presetName}','${periodKey}','filter_method',this.value)">
-                    <option value="" ${filterMethod === '' ? 'selected' : ''}>继承</option>
+                    <option value="" ${filterMethod === '' ? 'selected' : ''}>${tr('docs.timeline.option.inherit')}</option>
                     <option value="keyword" ${filterMethod === 'keyword' ? 'selected' : ''}>keyword</option>
                     <option value="ai" ${filterMethod === 'ai' ? 'selected' : ''}>ai</option>
                 </select>
             </div>
             <div>
                 <label class="block text-[10px] text-gray-400 mb-1">frequency_file</label>
-                <input type="text" value="${frequencyFile}" placeholder="如 tech.txt"
+                <input type="text" value="${frequencyFile}" placeholder="e.g. tech.txt"
                        class="text-[10px] w-full border border-gray-200 rounded px-1.5 py-1 bg-white"
                        onchange="onTlOptionalInput('${presetName}','${periodKey}','frequency_file',this.value)">
             </div>
             <div>
                 <label class="block text-[10px] text-gray-400 mb-1">interests_file</label>
-                <input type="text" value="${interestsFile}" placeholder="如 geopolitics.txt"
+                <input type="text" value="${interestsFile}" placeholder="e.g. geopolitics.txt"
                        class="text-[10px] w-full border border-gray-200 rounded px-1.5 py-1 bg-white"
                        onchange="onTlOptionalInput('${presetName}','${periodKey}','interests_file',this.value)">
             </div>
@@ -4812,7 +4832,7 @@ window.selectTimelinePreset = function(name) {
     const tlData = parseTimelineData();
     const tlCfg = getPresetConfig(tlData, name);
     const displayName = tlCfg?.name || name;
-    showToast(`已切换至「${displayName}」模式`, 'success');
+    showToast(tr('docs.timeline.toast.switched_mode', { name: displayName }), 'success');
 }
 
 /**
@@ -4886,7 +4906,7 @@ window.openTlNewPresetModal = function() {
     // 填充模板下拉
     const sel = document.getElementById('tl-new-preset-template');
     const data = parseTimelineData();
-    sel.innerHTML = '<option value="">空白模板（仅采集，不推送不分析）</option>';
+    sel.innerHTML = `<option value="">${tr('docs.timeline.new_preset.template_empty')}</option>`;
     if (data?.presets) {
         Object.keys(data.presets).forEach(k => {
             const name = data.presets[k]?.name || k;
@@ -4894,7 +4914,7 @@ window.openTlNewPresetModal = function() {
         });
     }
     if (data?.custom) {
-        sel.innerHTML += `<option value="custom">${data.custom.name || '自定义'} (custom)</option>`;
+        sel.innerHTML += `<option value="custom">${data.custom.name || tr('docs.timeline.custom_name')} (custom)</option>`;
     }
     // 清空输入
     document.getElementById('tl-new-preset-key').value = '';
@@ -4915,14 +4935,14 @@ window.confirmTlNewPreset = function() {
     const template = document.getElementById('tl-new-preset-template').value;
 
     // 验证
-    if (!key) { showToast('请输入模式标识 (key)', 'error'); return; }
-    if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(key)) { showToast('key 仅支持英文、数字和下划线，且不能以数字开头', 'error'); return; }
-    if (!name) { showToast('请输入显示名称', 'error'); return; }
+    if (!key) { showToast(tr('docs.timeline.error.enter_preset_key'), 'error'); return; }
+    if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(key)) { showToast(tr('docs.timeline.error.invalid_key_with_leading_rule'), 'error'); return; }
+    if (!name) { showToast(tr('docs.timeline.error.enter_display_name'), 'error'); return; }
 
     // 检查重复
     const data = parseTimelineData();
-    if (data?.presets?.[key]) { showToast(`预设「${key}」已存在`, 'error'); return; }
-    if (key === 'custom') { showToast('不能使用 "custom" 作为预设名', 'error'); return; }
+    if (data?.presets?.[key]) { showToast(tr('docs.timeline.error.preset_exists', { key }), 'error'); return; }
+    if (key === 'custom') { showToast(tr('docs.timeline.error.custom_reserved'), 'error'); return; }
 
     // 构建 YAML 文本块
     let block;
@@ -4974,7 +4994,7 @@ window.confirmTlNewPreset = function() {
     selectTimelinePreset(key);
 
     closeTlNewPresetModal();
-    showToast(`调度模式「${name}」创建成功`, 'success');
+    showToast(tr('docs.timeline.toast.preset_created', { name }), 'success');
 }
 
 /**
@@ -5042,24 +5062,24 @@ window.confirmTlNewPeriod = function() {
     const start = document.getElementById('tl-new-period-start').value;
     const end = document.getElementById('tl-new-period-end').value;
 
-    if (!key) { showToast('请输入时间段标识 (key)', 'error'); return; }
-    if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(key)) { showToast('key 仅支持英文、数字和下划线', 'error'); return; }
-    if (!name) { showToast('请输入显示名称', 'error'); return; }
-    if (!start || !end) { showToast('请设置开始和结束时间', 'error'); return; }
-    if (start === end) { showToast('开始时间和结束时间不能相同', 'error'); return; }
+    if (!key) { showToast(tr('docs.timeline.error.enter_period_key'), 'error'); return; }
+    if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(key)) { showToast(tr('docs.timeline.error.invalid_key'), 'error'); return; }
+    if (!name) { showToast(tr('docs.timeline.error.enter_display_name'), 'error'); return; }
+    if (!start || !end) { showToast(tr('docs.timeline.error.set_start_end_time'), 'error'); return; }
+    if (start === end) { showToast(tr('docs.timeline.error.start_end_same'), 'error'); return; }
 
     const data = parseTimelineData();
     const presetCfg = getPresetConfig(data, _tlNewPeriodTarget);
-    if (presetCfg?.periods?.[key]) { showToast(`时间段「${key}」已存在`, 'error'); return; }
+    if (presetCfg?.periods?.[key]) { showToast(tr('docs.timeline.error.period_exists', { key }), 'error'); return; }
 
     const editor = document.getElementById('timeline-editor');
     const lines = editor.value.split('\n');
 
     const sectionInfo = findPresetSection(lines, _tlNewPeriodTarget);
-    if (!sectionInfo) { showToast('未找到预设配置段', 'error'); return; }
+    if (!sectionInfo) { showToast(tr('docs.timeline.error.preset_section_not_found'), 'error'); return; }
 
     const periodsLine = findChildKey(lines, sectionInfo.start, sectionInfo.end, sectionInfo.indent, 'periods');
-    if (periodsLine < 0) { showToast('未找到 periods 配置段', 'error'); return; }
+    if (periodsLine < 0) { showToast(tr('docs.timeline.error.periods_section_not_found'), 'error'); return; }
 
     const periodsIndent = lines[periodsLine].search(/\S/);
     const periodsContent = lines[periodsLine].trim();
@@ -5094,7 +5114,7 @@ window.confirmTlNewPeriod = function() {
 
     closeTlNewPeriodModal();
     syncTimelineToUI();
-    showToast(`时间段「${name}」添加成功`, 'success');
+    showToast(tr('docs.timeline.toast.period_added', { name }), 'success');
 }
 
 // ── 删除时间段 ──
@@ -5111,9 +5131,9 @@ window.deleteTlPeriod = function(presetName, periodKey) {
     });
 
     const periodName = config.periods?.[periodKey]?.name || periodKey;
-    let msg = `确定删除时间段「${periodName}」？`;
+    let msg = tr('docs.timeline.confirm.delete_period', { name: periodName });
     if (refs.length > 0) {
-        msg += `\n\n⚠️ 该时间段被以下日计划引用，将同时移除引用：\n${refs.map(r => '  • ' + r).join('\n')}`;
+        msg += tr('docs.timeline.confirm.delete_period_with_refs', { refs: refs.map(r => '  • ' + r).join('\n') });
     }
     if (!confirm(msg)) return;
 
@@ -5145,7 +5165,7 @@ window.deleteTlPeriod = function(presetName, periodKey) {
     updateBackdrop('timeline-editor', 'timeline-backdrop');
     debounceSaveTimeline();
     syncTimelineToUI();
-    showToast(`时间段「${periodName}」已删除`, 'success');
+    showToast(tr('docs.timeline.toast.period_deleted', { name: periodName }), 'success');
 }
 
 // ── 复制时间段 ──
@@ -5188,7 +5208,7 @@ window.duplicateTlPeriod = function(presetName, periodKey) {
     for (let li = 0; li < copiedLines.length; li++) {
         const m = copiedLines[li].match(/^(\s*name:\s*).+$/);
         if (m) {
-            const newName = (src.name || periodKey) + ' (副本)';
+            const newName = `${src.name || periodKey} ${tr('docs.timeline.suffix.copy')}`;
             copiedLines[li] = `${m[1]}"${newName}"`;
             break;
         }
@@ -5200,7 +5220,7 @@ window.duplicateTlPeriod = function(presetName, periodKey) {
     updateBackdrop('timeline-editor', 'timeline-backdrop');
     debounceSaveTimeline();
     syncTimelineToUI();
-    showToast(`已复制为「${newKey}」`, 'success');
+    showToast(tr('docs.timeline.toast.copied_as', { key: newKey }), 'success');
 }
 
 // ── 删除预设模式 ──
@@ -5209,11 +5229,11 @@ const PROTECTED_PRESETS = ['morning_evening', 'always_on', 'office_hours', 'nigh
 
 window.deleteTlPreset = function(presetName) {
     if (PROTECTED_PRESETS.includes(presetName)) {
-        showToast('内置预设不可删除，可使用复制功能', 'warning');
+        showToast(tr('docs.timeline.error.protected_preset_delete'), 'warning');
         return;
     }
     if (presetName === 'custom') {
-        showToast('custom 模式不可删除', 'warning');
+        showToast(tr('docs.timeline.error.custom_not_deletable'), 'warning');
         return;
     }
 
@@ -5221,7 +5241,7 @@ window.deleteTlPreset = function(presetName) {
     const cfg = data?.presets?.[presetName];
     const displayName = cfg?.name || presetName;
 
-    if (!confirm(`确定删除调度模式「${displayName}」？\n此操作不可撤销。`)) return;
+    if (!confirm(tr('docs.timeline.confirm.delete_preset_irreversible', { name: displayName }))) return;
 
     const editor = document.getElementById('timeline-editor');
     const lines = editor.value.split('\n');
@@ -5241,7 +5261,7 @@ window.deleteTlPreset = function(presetName) {
     } else {
         syncTimelineToUI();
     }
-    showToast(`调度模式「${displayName}」已删除`, 'success');
+    showToast(tr('docs.timeline.toast.preset_deleted', { name: displayName }), 'success');
 }
 
 // ── 复制预设模式 ──
@@ -5254,7 +5274,7 @@ window.duplicateTlPreset = function(presetName) {
     openTlNewPresetModal();
     const origName = src.name || presetName;
     document.getElementById('tl-new-preset-key').value = presetName + '_copy';
-    document.getElementById('tl-new-preset-name').value = origName + ' (副本)';
+    document.getElementById('tl-new-preset-name').value = `${origName} ${tr('docs.timeline.suffix.copy')}`;
     document.getElementById('tl-new-preset-desc').value = src.description || '';
     document.getElementById('tl-new-preset-template').value = presetName;
 }
@@ -5262,17 +5282,17 @@ window.duplicateTlPreset = function(presetName) {
 // ── 新增日计划 ──
 
 window.addTlDayPlan = function(presetName) {
-    const planKey = prompt('请输入日计划标识 (key)，如 holiday：');
+    const planKey = prompt(tr('docs.timeline.prompt.enter_day_plan_key'));
     if (!planKey) return;
     if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(planKey)) {
-        showToast('key 仅支持英文、数字和下划线', 'error');
+        showToast(tr('docs.timeline.error.invalid_key'), 'error');
         return;
     }
 
     const data = parseTimelineData();
     const config = getPresetConfig(data, presetName);
     if (config?.day_plans?.[planKey]) {
-        showToast(`日计划「${planKey}」已存在`, 'error');
+        showToast(tr('docs.timeline.error.day_plan_exists', { key: planKey }), 'error');
         return;
     }
 
@@ -5301,7 +5321,7 @@ window.addTlDayPlan = function(presetName) {
     updateBackdrop('timeline-editor', 'timeline-backdrop');
     debounceSaveTimeline();
     syncTimelineToUI();
-    showToast(`日计划「${planKey}」已添加`, 'success');
+    showToast(tr('docs.timeline.toast.day_plan_added', { key: planKey }), 'success');
 }
 
 // ── 删除日计划 ──
@@ -5319,11 +5339,11 @@ window.deleteTlDayPlan = function(presetName, planKey) {
     }
 
     if (refs.length > 0) {
-        showToast(`无法删除：「${planKey}」正在被 ${refs.join('、')} 使用。请先修改周映射。`, 'error');
+        showToast(tr('docs.timeline.error.day_plan_in_use', { key: planKey, refs: refs.join(', ') }), 'error');
         return;
     }
 
-    if (!confirm(`确定删除日计划「${planKey}」？`)) return;
+    if (!confirm(tr('docs.timeline.confirm.delete_day_plan', { key: planKey }))) return;
 
     const editor = document.getElementById('timeline-editor');
     const lines = editor.value.split('\n');
@@ -5349,7 +5369,7 @@ window.deleteTlDayPlan = function(presetName, planKey) {
     updateBackdrop('timeline-editor', 'timeline-backdrop');
     debounceSaveTimeline();
     syncTimelineToUI();
-    showToast(`日计划「${planKey}」已删除`, 'success');
+    showToast(tr('docs.timeline.toast.day_plan_deleted', { key: planKey }), 'success');
 }
 
 // ── 日计划中添加/移除时间段引用 ──
@@ -5426,7 +5446,7 @@ window.tlWeekMapQuick = function(presetName, mode) {
     if (!config) return;
 
     const dayPlanKeys = Object.keys(config.day_plans || {});
-    if (dayPlanKeys.length === 0) { showToast('没有可用的日计划', 'error'); return; }
+    if (dayPlanKeys.length === 0) { showToast(tr('docs.timeline.error.no_day_plans'), 'error'); return; }
 
     let mapping = {};
 
@@ -5440,7 +5460,7 @@ window.tlWeekMapQuick = function(presetName, mode) {
         mapping[6] = wm[6] || wm['6'] || plan;
         mapping[7] = wm[7] || wm['7'] || plan;
     } else if (mode === 'weekday_weekend') {
-        if (dayPlanKeys.length < 2) { showToast('需要至少两个日计划来分离工作日/周末', 'warning'); return; }
+        if (dayPlanKeys.length < 2) { showToast(tr('docs.timeline.error.need_two_day_plans'), 'warning'); return; }
         const wd = dayPlanKeys[0];
         const we = dayPlanKeys[1];
         for (let d = 1; d <= 5; d++) mapping[d] = wd;
@@ -5451,7 +5471,7 @@ window.tlWeekMapQuick = function(presetName, mode) {
     for (let d = 1; d <= 7; d++) {
         if (mapping[d]) onTlWeekMap(presetName, d, mapping[d]);
     }
-    showToast('周映射已更新', 'success');
+    showToast(tr('docs.timeline.toast.week_map_updated'), 'success');
 }
 
 // ── 辅助函数 ──
@@ -5673,14 +5693,14 @@ window.onTlBarClick = function(event, presetName, dayNum) {
     if (!config) return;
 
     const weekMap = config.week_map || {};
-    const planKey = weekMap[dayNum] || weekMap[String(dayNum)] || '(未设置)';
+    const planKey = weekMap[dayNum] || weekMap[String(dayNum)] || tr('docs.timeline.unset');
 
     hideTlTooltip();
     const el = document.createElement('div');
     el.className = 'tl-tooltip';
     el.innerHTML = `<div style="font-weight:700;margin-bottom:2px">${DAY_NAMES[dayNum - 1]}</div>
-        <div style="font-size:11px;color:#9ca3af">日计划: <strong style="color:#374151">${planKey}</strong></div>
-        <div style="font-size:10px;color:#9ca3af;margin-top:4px">使用 default 配置</div>`;
+        <div style="font-size:11px;color:#9ca3af">${tr('docs.timeline.label.day_plan')}: <strong style="color:#374151">${planKey}</strong></div>
+        <div style="font-size:10px;color:#9ca3af;margin-top:4px">${tr('docs.timeline.tooltip.uses_default')}</div>`;
 
     document.body.appendChild(el);
     tlTooltipEl = el;
@@ -5779,5 +5799,5 @@ function toggleSupportSidebar() {
     const btn = document.getElementById('sidebar-toggle-btn');
     const isCollapsed = wrap.classList.toggle('collapsed');
     btn.classList.toggle('is-collapsed', isCollapsed);
-    btn.title = isCollapsed ? '展开侧栏' : '收起侧栏';
+    btn.title = isCollapsed ? tr('docs.action.expand_sidebar') : tr('docs.action.collapse_sidebar');
 }

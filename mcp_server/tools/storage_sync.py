@@ -14,6 +14,7 @@ from typing import Dict, List, Optional
 import yaml
 
 from ..utils.errors import MCPError
+from ..utils.i18n import get_translator
 
 
 class StorageSyncTools:
@@ -34,6 +35,7 @@ class StorageSyncTools:
 
         self._config = None
         self._remote_backend = None
+        self._t, self._locale = get_translator(project_root)
 
     def _load_config(self) -> dict:
         """加载配置文件"""
@@ -227,8 +229,8 @@ class StorageSyncTools:
                     "success": False,
                     "error": {
                         "code": "REMOTE_NOT_CONFIGURED",
-                        "message": "未配置远程存储",
-                        "suggestion": "请在 config/config.yaml 中配置 storage.remote 或设置环境变量"
+                        "message": self._t("mcp.storage.error.remote_not_configured"),
+                        "suggestion": self._t("mcp.storage.error.remote_not_configured_suggestion")
                     }
                 }
 
@@ -239,8 +241,8 @@ class StorageSyncTools:
                     "success": False,
                     "error": {
                         "code": "REMOTE_BACKEND_FAILED",
-                        "message": "无法创建远程存储后端",
-                        "suggestion": "请检查远程存储配置和 boto3 是否已安装"
+                        "message": self._t("mcp.storage.error.remote_backend_failed"),
+                        "suggestion": self._t("mcp.storage.error.remote_backend_failed_suggestion")
                     }
                 }
 
@@ -299,7 +301,7 @@ class StorageSyncTools:
             return {
                 "success": True,
                 "summary": {
-                    "description": "远程存储同步结果",
+                    "description": self._t("mcp.storage.summary.sync_result"),
                     "synced_files": len(synced_dates),
                     "skipped_count": len(skipped_dates),
                     "failed_count": len(failed_dates)
@@ -309,11 +311,7 @@ class StorageSyncTools:
                     "skipped_dates": skipped_dates,
                     "failed_dates": failed_dates
                 },
-                "message": f"成功同步 {len(synced_dates)} 天数据" + (
-                    f"，跳过 {len(skipped_dates)} 天（本地已存在）" if skipped_dates else ""
-                ) + (
-                    f"，失败 {len(failed_dates)} 天" if failed_dates else ""
-                )
+                "message": self._t("mcp.storage.message.sync_result", synced=len(synced_dates), skipped=len(skipped_dates), failed=len(failed_dates))
             }
 
         except MCPError as e:
@@ -408,7 +406,7 @@ class StorageSyncTools:
             return {
                 "success": True,
                 "summary": {
-                    "description": "存储配置和状态信息",
+                    "description": self._t("mcp.storage.summary.status"),
                     "backend": storage_config.get("backend", "auto")
                 },
                 "data": {
@@ -448,7 +446,7 @@ class StorageSyncTools:
         try:
             data_result = {}
             summary_info = {
-                "description": "可用日期列表",
+                "description": self._t("mcp.storage.summary.available_dates"),
                 "source": source
             }
 
@@ -483,7 +481,7 @@ class StorageSyncTools:
                         "count": 0,
                         "earliest": None,
                         "latest": None,
-                        "error": "未配置远程存储"
+                        "error": self._t("mcp.storage.error.remote_not_configured")
                     }
                 else:
                     remote_backend = self._get_remote_backend()
@@ -513,7 +511,7 @@ class StorageSyncTools:
                             "count": 0,
                             "earliest": None,
                             "latest": None,
-                            "error": "无法创建远程存储后端"
+                            "error": self._t("mcp.storage.error.remote_backend_failed")
                         }
 
             # 如果同时查询两者，计算差异

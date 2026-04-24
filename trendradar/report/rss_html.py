@@ -9,6 +9,7 @@ from datetime import datetime
 from typing import Dict, List, Optional, Callable
 
 from trendradar.report.helpers import html_escape
+from trendradar.i18n import t as tr_text
 
 
 def render_rss_html_content(
@@ -17,6 +18,7 @@ def render_rss_html_content(
     feeds_info: Optional[Dict[str, str]] = None,
     *,
     get_time_func: Optional[Callable[[], datetime]] = None,
+    locale: str = "vi-VN",
 ) -> str:
     """渲染 RSS HTML 内容
 
@@ -36,13 +38,25 @@ def render_rss_html_content(
     Returns:
         渲染后的 HTML 字符串
     """
+    title_text = tr_text("rss.title", locale)
+    save_image_text = tr_text("rss.button.save_image", locale)
+    subscription_items_text = tr_text("rss.label.subscription_items", locale)
+    generated_at_text = tr_text("rss.label.generated_at", locale)
+    generated_by_text = tr_text("rss.footer.generated_by", locale)
+    github_project_text = tr_text("rss.footer.github_project", locale)
+    generating_text = tr_text("rss.action.generating", locale)
+    save_success_text = tr_text("rss.action.saved_success", locale)
+    save_failed_text = tr_text("rss.action.saved_failed", locale)
+    file_prefix = tr_text("rss.filename", locale)
+    items_unit = tr_text("shared.unit.items", locale)
+
     html = """
     <!DOCTYPE html>
     <html>
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>RSS 订阅内容</title>
+        <title>""" + html_escape(title_text) + """</title>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoeqMV/TJlSKda6FXzoEyYGjTe+vXA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
         <style>
             * { box-sizing: border-box; }
@@ -293,20 +307,20 @@ def render_rss_html_content(
         <div class="container">
             <div class="header">
                 <div class="save-buttons">
-                    <button class="save-btn" onclick="saveAsImage()">保存为图片</button>
+                    <button class="save-btn" onclick="saveAsImage()">""" + html_escape(save_image_text) + """</button>
                 </div>
-                <div class="header-title">RSS 订阅内容</div>
+                <div class="header-title">""" + html_escape(title_text) + """</div>
                 <div class="header-info">
                     <div class="info-item">
-                        <span class="info-label">订阅条目</span>
+                        <span class="info-label">""" + html_escape(subscription_items_text) + """</span>
                         <span class="info-value">"""
 
-    html += f"{total_count} 条"
+    html += f"{total_count} {items_unit}"
 
     html += """</span>
                     </div>
                     <div class="info-item">
-                        <span class="info-label">生成时间</span>
+                        <span class="info-label">""" + html_escape(generated_at_text) + """</span>
                         <span class="info-value">"""
 
     # 使用提供的时间函数或默认 datetime.now
@@ -343,7 +357,7 @@ def render_rss_html_content(
                 <div class="feed-group">
                     <div class="feed-header">
                         <div class="feed-name">{escaped_feed_name}</div>
-                        <div class="feed-count">{len(items)} 条</div>
+                        <div class="feed-count">{len(items)} {items_unit}</div>
                     </div>"""
 
         for item in items:
@@ -392,9 +406,9 @@ def render_rss_html_content(
 
             <div class="footer">
                 <div class="footer-content">
-                    由 <span class="project-name">TrendRadar</span> 生成 ·
+                    """ + generated_by_text + """
                     <a href="https://github.com/sansan0/TrendRadar" target="_blank" class="footer-link">
-                        GitHub 开源项目
+                        """ + html_escape(github_project_text) + """
                     </a>
                 </div>
             </div>
@@ -406,7 +420,7 @@ def render_rss_html_content(
                 const originalText = button.textContent;
 
                 try {
-                    button.textContent = '生成中...';
+                    button.textContent = '""" + html_escape(generating_text) + """';
                     button.disabled = true;
                     window.scrollTo(0, 0);
 
@@ -442,7 +456,7 @@ def render_rss_html_content(
 
                     const link = document.createElement('a');
                     const now = new Date();
-                    const filename = `TrendRadar_RSS订阅_${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}.png`;
+                    const filename = `""" + html_escape(file_prefix) + """_${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}.png`;
 
                     link.download = filename;
                     link.href = canvas.toDataURL('image/png', 1.0);
@@ -451,7 +465,7 @@ def render_rss_html_content(
                     link.click();
                     document.body.removeChild(link);
 
-                    button.textContent = '保存成功!';
+                    button.textContent = '""" + html_escape(save_success_text) + """';
                     setTimeout(() => {
                         button.textContent = originalText;
                         button.disabled = false;
@@ -460,7 +474,7 @@ def render_rss_html_content(
                 } catch (error) {
                     const buttons = document.querySelector('.save-buttons');
                     buttons.style.visibility = 'visible';
-                    button.textContent = '保存失败';
+                    button.textContent = '""" + html_escape(save_failed_text) + """';
                     setTimeout(() => {
                         button.textContent = originalText;
                         button.disabled = false;

@@ -8,10 +8,15 @@
 from typing import Dict
 
 from trendradar.report.helpers import clean_title, html_escape, format_rank_display
+from trendradar.i18n import t as tr_text
 
 
 def format_title_for_platform(
-    platform: str, title_data: Dict, show_source: bool = True, show_keyword: bool = False
+    platform: str,
+    title_data: Dict,
+    show_source: bool = True,
+    show_keyword: bool = False,
+    locale: str = "vi-VN",
 ) -> str:
     """统一的标题格式化方法
 
@@ -74,7 +79,7 @@ def format_title_for_platform(
         if title_data["time_display"]:
             result += f" <font color='grey'>- {title_data['time_display']}</font>"
         if title_data["count"] > 1:
-            result += f" <font color='green'>({title_data['count']}次)</font>"
+            result += f" <font color='green'>({title_data['count']}{tr_text('shared.unit.times', locale)})</font>"
 
         return result
 
@@ -98,7 +103,7 @@ def format_title_for_platform(
         if title_data["time_display"]:
             result += f" - {title_data['time_display']}"
         if title_data["count"] > 1:
-            result += f" ({title_data['count']}次)"
+            result += f" ({title_data['count']}{tr_text('shared.unit.times', locale)})"
 
         return result
 
@@ -123,7 +128,7 @@ def format_title_for_platform(
         if title_data["time_display"]:
             result += f" - {title_data['time_display']}"
         if title_data["count"] > 1:
-            result += f" ({title_data['count']}次)"
+            result += f" ({title_data['count']}{tr_text('shared.unit.times', locale)})"
 
         return result
 
@@ -171,7 +176,7 @@ def format_title_for_platform(
         if title_data["time_display"]:
             result += f" `- {title_data['time_display']}`"
         if title_data["count"] > 1:
-            result += f" `({title_data['count']}次)`"
+            result += f" `({title_data['count']}{tr_text('shared.unit.times', locale)})`"
 
         return result
 
@@ -201,7 +206,7 @@ def format_title_for_platform(
         if title_data["time_display"]:
             result += f" `- {title_data['time_display']}`"
         if title_data["count"] > 1:
-            result += f" `({title_data['count']}次)`"
+            result += f" `({title_data['count']}{tr_text('shared.unit.times', locale)})`"
 
         return result
 

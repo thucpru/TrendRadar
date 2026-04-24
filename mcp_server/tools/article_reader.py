@@ -12,6 +12,7 @@ from typing import Dict, List
 import requests
 
 from ..utils.errors import MCPError, InvalidParameterError
+from ..utils.i18n import get_translator
 
 
 # Jina Reader 配置
@@ -35,6 +36,7 @@ class ArticleReaderTools:
         self.project_root = project_root
         self.jina_api_key = jina_api_key
         self._last_request_time = 0.0
+        self._t, self._locale = get_translator(project_root)
 
     def _build_headers(self) -> Dict[str, str]:
         """构建请求头"""
@@ -73,8 +75,8 @@ class ArticleReaderTools:
         try:
             if not url or not url.startswith(("http://", "https://")):
                 raise InvalidParameterError(
-                    f"无效的 URL: {url}",
-                    suggestion="URL 必须以 http:// 或 https:// 开头"
+                    self._t("mcp.article.error.invalid_url", url=url),
+                    suggestion=self._t("mcp.article.error.invalid_url_suggestion")
                 )
 
             self._throttle()
@@ -100,8 +102,8 @@ class ArticleReaderTools:
                     "success": False,
                     "error": {
                         "code": "RATE_LIMITED",
-                        "message": "Jina Reader 速率限制，请稍后重试",
-                        "suggestion": "免费限制: 100 RPM / 2 并发，可配置 API Key 提升限额"
+                        "message": self._t("mcp.article.error.rate_limited"),
+                        "suggestion": self._t("mcp.article.error.rate_limited_suggestion")
                     }
                 }
             else:
@@ -119,9 +121,9 @@ class ArticleReaderTools:
                 "success": False,
                 "error": {
                     "code": "TIMEOUT",
-                    "message": f"请求超时（{timeout}秒）",
+                    "message": self._t("mcp.article.error.timeout", timeout=timeout),
                     "url": url,
-                    "suggestion": "可尝试增加 timeout 参数"
+                    "suggestion": self._t("mcp.article.error.timeout_suggestion")
                 }
             }
         except MCPError as e:
@@ -154,8 +156,8 @@ class ArticleReaderTools:
         try:
             if not urls:
                 raise InvalidParameterError(
-                    "URL 列表不能为空",
-                    suggestion="请提供至少一个 URL"
+                    self._t("mcp.article.error.empty_url_list"),
+                    suggestion=self._t("mcp.article.error.empty_url_list_suggestion")
                 )
 
             # 限制最多 5 篇
@@ -185,7 +187,7 @@ class ArticleReaderTools:
             return {
                 "success": True,
                 "summary": {
-                    "description": "批量文章读取结果",
+                    "description": self._t("mcp.article.summary.batch_result"),
                     "requested": len(urls),
                     "processed": len(actual_urls),
                     "succeeded": succeeded,
@@ -194,7 +196,7 @@ class ArticleReaderTools:
                     "interval_seconds": BATCH_INTERVAL,
                 },
                 "articles": results,
-                "note": f"已跳过 {skipped} 篇（单次上限 {MAX_BATCH_SIZE} 篇）" if skipped > 0 else None
+                "note": self._t("mcp.article.note.batch_skipped", skipped=skipped, max_batch=MAX_BATCH_SIZE) if skipped > 0 else None
             }
 
         except MCPError as e:
