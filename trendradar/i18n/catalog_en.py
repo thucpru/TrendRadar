@@ -295,9 +295,7 @@ TEXTS = {
     "mcp.date.error.expression_empty": "Date expression cannot be empty",
     "mcp.date.error.expression_empty_suggestion": "Provide a valid date expression, for example: this week, last 7 days, last week",
     "mcp.date.error.unrecognized_expression": "Unrecognized date expression: {expression}",
-    "mcp.date.error.unrecognized_expression_suggestion": "Supported expressions:
-CN: {supported_cn}
-EN: {supported_en}",
+    "mcp.date.error.unrecognized_expression_suggestion": "Supported expressions:\nCN: {supported_cn}\nEN: {supported_en}",
     "mcp.date.desc.today": "Today",
     "mcp.date.desc.yesterday": "Yesterday",
     "mcp.date.desc.this_week": "This week (Mon-Sun, {start} to {end})",
